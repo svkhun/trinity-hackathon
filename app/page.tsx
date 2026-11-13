@@ -1,43 +1,22 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, MotionConfig, motion } from "motion/react";
-import {
-  Activity,
-  ArrowRight,
-  ArrowUpRight,
-  BookOpen,
-  Check,
-  ChevronRight,
-  CircleHelp,
-  Command,
-  FlaskConical,
-  LayoutDashboard,
-  LockKeyhole,
-  PanelLeft,
-  Radio,
-  ScanLine,
-  ShieldCheck,
-  Waypoints,
-  X,
-} from "lucide-react";
-import {
-  Brand,
-  navItems,
-  RiskSummary,
-  Showcase,
-  Status,
-  type View,
-} from "@/components/shared";
-import { Button } from "@/components/ui/button";
-import { Terrain } from "@/components/terrain";
+import dynamic from "next/dynamic";
+import { BookOpen, Check, LockKeyhole, X } from "lucide-react";
+import { Brand, navItems, RiskSummary, type View } from "@/components/shared";
+import { Lead, ReportIndex } from "@/components/reading-desk";
 import { Composer, Findings } from "@/components/fact-check";
-import { Analytics } from "@/components/analytics";
-import { Sources } from "@/components/sources";
-import { RiskLab } from "@/components/risklab";
+const Analytics = dynamic(() =>
+  import("@/components/analytics").then((m) => m.Analytics),
+);
+const Sources = dynamic(() =>
+  import("@/components/sources").then((m) => m.Sources),
+);
+const RiskLab = dynamic(() =>
+  import("@/components/risklab").then((m) => m.RiskLab),
+);
 import { analyzePost, mockAnalysisService, postSchema } from "@/lib/analysis";
 import { scenarios } from "@/lib/data";
-const titles: Record<View, [string, string]> = {
-  overview: ["Workspace overview", "ภาพรวมพื้นที่วิเคราะห์การลงทุน"],
+const titles: Record<Exclude<View, "overview">, [string, string]> = {
   "fact-check": ["Fact Check", "ตรวจสอบถ้อยคำและหลักฐานประกอบโพสต์การลงทุน"],
   "ai-analysis": ["AI Analysis", "สำรวจสัญญาณภาษาและเหตุผลเบื้องหลังคะแนนจำลอง"],
   sources: ["Source Intelligence", "สำรวจที่มาและความโปร่งใสของแหล่งข้อมูลตัวอย่าง"],
@@ -56,6 +35,7 @@ export default function Page() {
     [error, setError] = useState(""),
     [toast, setToast] = useState(""),
     [guide, setGuide] = useState(false);
+  const [targetPhrase, setTargetPhrase] = useState<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null),
     pending = useRef(false);
   useEffect(() => {
@@ -86,6 +66,7 @@ export default function Page() {
     const validation = postSchema.safeParse(draft);
     if (!validation.success) {
       setError(validation.error.issues[0].message);
+      document.getElementById("post")?.focus();
       return;
     }
     setError("");
@@ -94,12 +75,11 @@ export default function Page() {
     try {
       const next = await mockAnalysisService.analyze(validation.data);
       setReport(next);
+      setTargetPhrase(null);
       go("fact-check");
       setToast("วิเคราะห์โพสต์เสร็จแล้ว");
       requestAnimationFrame(() =>
-        document
-          .getElementById("analysis-result")
-          ?.scrollIntoView({ block: "start" }),
+        document.getElementById("analysis-result")?.focus(),
       );
     } catch {
       setError("วิเคราะห์ไม่สำเร็จ กรุณาลองอีกครั้ง");
@@ -124,7 +104,7 @@ export default function Page() {
     <RiskSummary report={report} onOpen={() => go("ai-analysis")} />
   );
   return (
-    <MotionConfig reducedMotion="user">
+    <>
       <div className="shell">
         <a
           href="#main"
@@ -136,155 +116,94 @@ export default function Page() {
         >
           ข้ามไปเนื้อหา
         </a>
-        <aside className="sidebar">
-          <a
-            className="brand-link"
-            href="#overview"
-            aria-label="HypeCheck AI Overview"
-          >
-            <Brand />
-          </a>
-          <div className="nav-label">WORKSPACE</div>
-          <nav aria-label="เมนูหลัก">
-            {navItems.map(({ id, name, icon: Icon }) => (
-              <a
-                key={id}
-                href={"#" + id}
-                onClick={() => go(id)}
-                aria-current={view === id ? "page" : undefined}
-                className={view === id ? "active" : ""}
-              >
-                <Icon size={18} />
-                <span>{name}</span>
-                {id === view && <i className="active-dot" />}
-              </a>
-            ))}
-          </nav>
-          <div className="sidebar-bottom">
-            <div className="local-status">
-              <i className="dot lime" />
-              <span>Local demo</span>
-              <small>v1.0</small>
-            </div>
-            <button className="guide-link" onClick={() => setGuide(true)}>
-              <BookOpen size={16} /> คู่มือการใช้งาน <ArrowUpRight size={13} />
-            </button>
-          </div>
-        </aside>
-        <div className="workarea">
-          <header className="topbar">
-            <div className="crumb">
-              <PanelLeft size={16} />
-              <i />
-              Workspace <ChevronRight size={13} />
-              <strong>{navItems.find((n) => n.id === view)?.name}</strong>
-            </div>
-            <a className="mobile-brand" href="#overview">
+        <header className="masthead">
+          <div className="mast-inner">
+            <a
+              className="brand-link"
+              href="#overview"
+              aria-label="HypeCheck AI Overview"
+            >
               <Brand />
             </a>
-            <div className="top-right">
-              <span className="demo-chip">
-                <i className="dot lime" /> Demo mode
-              </span>
-              <span className="top-divider" />
-              <button
-                className="help-btn"
-                title="คู่มือและข้อจำกัด"
-                aria-label="คู่มือและข้อจำกัด"
-                onClick={() => setGuide(true)}
-              >
-                <CircleHelp size={18} />
-              </button>
-            </div>
-          </header>
+            <nav aria-label="เมนูหลัก" className="desk-nav">
+              {navItems.map(({ id, name }) => (
+                <a
+                  key={id}
+                  href={"#" + id}
+                  aria-current={view === id ? "page" : undefined}
+                >
+                  {name}
+                </a>
+              ))}
+            </nav>
+            <button className="guide-link" onClick={() => setGuide(true)}>
+              <BookOpen size={17} /> คู่มือ
+            </button>
+          </div>
+        </header>
+        <div className="workarea">
           <main id="main" tabIndex={-1}>
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={view}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.13 }}
-                className="page"
-              >
-                <div className="page-heading">
-                  <div>
-                    <h1>{titles[view][0]}</h1>
-                    <p>{titles[view][1]}</p>
-                  </div>
-                  {view === "overview" && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => go("risklab")}
-                    >
-                      <FlaskConical size={15} /> เปิด RiskLab{" "}
-                      <ArrowUpRight size={14} />
-                    </Button>
-                  )}
-                </div>
-                {view === "overview" ? (
-                  <>
-                    <section className="hero">
-                      <Terrain />
-                      <div className="hero-shade" />
-                      <div className="hero-content">
-                        <div className="hero-kicker">
-                          <span className="tiny-wave">∿</span> INVESTMENT
-                          INTELLIGENCE
-                        </div>
-                        <h2>
-                          Think Before
-                          <br />
-                          <span>You Invest.</span>
-                        </h2>
-                        <p>อ่านสัญญาณ FOMO ตรวจหลักฐาน ก่อนตัดสินใจลงทุน</p>
+            <div className="page" key={view}>
+              {view !== "overview" && (
+                <header className="page-heading">
+                  <h1>{titles[view][0]}</h1>
+                  <p>{titles[view][1]}</p>
+                </header>
+              )}
+              {view === "overview" ? (
+                <>
+                  <Lead
+                    report={report}
+                    onRead={(phrase) => {
+                      setTargetPhrase(phrase);
+                      go("fact-check");
+                    }}
+                  />
+                  <div className="split overview-grid">
+                    {editor}
+                    {busy ? (
+                      <div role="status" className="panel skeleton">
+                        กำลังวิเคราะห์สัญญาณ…
                       </div>
-                      <span className="hero-coordinate">
-                        <Activity size={12} /> SIGNAL TOPOGRAPHY
-                      </span>
-                    </section>
-                    <div className="split overview-grid">
-                      {editor}
-                      {busy ? (
-                        <div role="status" className="panel skeleton">
-                          กำลังวิเคราะห์สัญญาณ…
-                        </div>
-                      ) : (
-                        summary
-                      )}
-                    </div>
-                    <Showcase go={go} report={report} />
-                  </>
-                ) : view === "fact-check" ? (
-                  <>
-                    <div className="split overview-grid">
-                      {editor}
-                      {summary}
-                    </div>
-                    <div id="analysis-result">
-                      {busy ? (
-                        <div role="status" className="panel skeleton">
-                          กำลังวิเคราะห์ข้อความ…
-                        </div>
-                      ) : (
-                        <Findings report={report} go={go} notify={setToast} />
-                      )}
-                    </div>
-                  </>
-                ) : view === "ai-analysis" ? (
-                  <Analytics report={report} go={go} />
-                ) : view === "sources" ? (
-                  <Sources report={report} go={go} />
-                ) : (
-                  <RiskLab />
-                )}
-                <footer>
-                  <ShieldCheck size={14} /> ข้อมูลจำลองเพื่อการเรียนรู้ <span>·</span>{" "}
-                  ไม่มีคำแนะนำซื้อขายหลักทรัพย์
-                </footer>
-              </motion.div>
-            </AnimatePresence>
+                    ) : (
+                      summary
+                    )}
+                  </div>
+                  <ReportIndex report={report} />
+                </>
+              ) : view === "fact-check" ? (
+                <>
+                  <div className="split overview-grid">
+                    {editor}
+                    {summary}
+                  </div>
+                  <div id="analysis-result" tabIndex={-1}>
+                    {busy ? (
+                      <div role="status" className="panel skeleton">
+                        กำลังวิเคราะห์ข้อความ…
+                      </div>
+                    ) : (
+                      <Findings
+                        targetPhrase={targetPhrase}
+                        report={report}
+                        go={go}
+                        notify={setToast}
+                      />
+                    )}
+                  </div>
+                </>
+              ) : view === "ai-analysis" ? (
+                <Analytics report={report} go={go} />
+              ) : view === "sources" ? (
+                <Sources report={report} go={go} />
+              ) : (
+                <RiskLab />
+              )}
+              <footer>
+                <span>HypeCheck AI</span> ข้อมูลจำลองเพื่อการเรียนรู้ ·
+                ไม่มีคำแนะนำซื้อขายหลักทรัพย์
+              </footer>
+            </div>
           </main>
         </div>
         <nav className="mobile-nav" aria-label="เมนูมือถือ">
@@ -322,7 +241,7 @@ export default function Page() {
               </button>
             </div>
             <ol>
-              <li>เลือกตัวอย่างหรือวางโพสต์ใน Fact Check แล้วกด Analyze with AI</li>
+              <li>เลือกตัวอย่างหรือวางโพสต์ใน Fact Check แล้วกด “ตรวจโพสต์นี้”</li>
               <li>เปิดข้อสังเกตและหลักฐาน ดูสัญญาณภาษาใน AI Analysis</li>
               <li>
                 สำรวจโปรไฟล์สมมติใน Source Intelligence และเปลี่ยนสมมติฐานใน RiskLab
@@ -345,6 +264,6 @@ export default function Page() {
           )}
         </div>
       </div>
-    </MotionConfig>
+    </>
   );
 }

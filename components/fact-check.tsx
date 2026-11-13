@@ -1,30 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   BookOpen,
-  Check,
-  ChevronRight,
   ClipboardCopy,
-  FileSearch,
-  FileText,
-  Flame,
-  GraduationCap,
   Link2,
   LoaderCircle,
   LockKeyhole,
-  ScanLine,
-  ShieldCheck,
-  Sparkles,
-  TriangleAlert,
-  TrendingUp,
-  Bitcoin,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Disclosure, PanelHead, Status, type Go } from "./shared";
-import { postSchema, type Report } from "@/lib/analysis";
+import type { Report } from "@/lib/analysis";
 import { scenarios } from "@/lib/data";
-const icons = [TrendingUp, ShieldCheck, GraduationCap, Bitcoin];
 export function Composer({
   draft,
   setDraft,
@@ -41,19 +28,41 @@ export function Composer({
   const selected = scenarios.find((x) => x.text === draft.trim());
   return (
     <section className="panel composer">
-      <PanelHead
-        icon={ScanLine}
-        eyebrow="FACT CHECK"
-        title="ตรวจสอบโพสต์ลงทุน"
-        action={<span className="small-chip">Text analysis</span>}
-      />
+      <header className="composer-head">
+        <div>
+          <span className="folio">Fact Check</span>
+          <h2>ต้นฉบับที่ต้องการตรวจ</h2>
+        </div>
+        <label className="case-select">
+          <span>เลือกกรณีศึกษา</span>
+          <select
+            aria-label="เลือกกรณีศึกษา"
+            disabled={busy}
+            value={selected?.id ?? "custom"}
+            onChange={(e) =>
+              setDraft(
+                scenarios.find((s) => s.id === e.target.value)?.text ?? "",
+              )
+            }
+          >
+            <option value="custom">เขียนโพสต์เอง</option>
+            {scenarios.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </header>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           analyze();
         }}
       >
-        <label htmlFor="post">ข้อความที่ต้องการตรวจสอบ</label>
+        <label htmlFor="post" className="sr-only">
+          ข้อความที่ต้องการตรวจสอบ
+        </label>
         <div className={"input-wrap " + (error ? "invalid" : "")}>
           <textarea
             id="post"
@@ -62,9 +71,9 @@ export function Composer({
             disabled={busy}
             onChange={(e) => setDraft(e.target.value)}
             aria-invalid={!!error}
-            aria-describedby={error ? "post-error" : undefined}
+            aria-describedby={error ? "post-error post-count" : "post-count"}
           />
-          <span className="char-count">
+          <span className="char-count" id="post-count">
             {draft.length.toLocaleString()} / 3,000
           </span>
         </div>
@@ -73,36 +82,13 @@ export function Composer({
             {error}
           </p>
         )}
-        <div className="example-label">ลองโพสต์ตัวอย่าง</div>
-        <div className="chips">
-          {scenarios.map((s, i) => {
-            const Icon = icons[i];
-            return (
-              <button
-                type="button"
-                disabled={busy}
-                className={selected?.id === s.id ? "selected" : ""}
-                aria-pressed={selected?.id === s.id}
-                onClick={() => setDraft(s.text)}
-                key={s.id}
-              >
-                <Icon size={13} />
-                {s.name}
-              </button>
-            );
-          })}
-        </div>
         <div className="form-footer">
           <span className="privacy">
             <LockKeyhole size={13} /> ประมวลผลบนอุปกรณ์
           </span>
           <Button disabled={busy} type="submit">
-            {busy ? (
-              <LoaderCircle className="spin" size={16} />
-            ) : (
-              <Sparkles size={16} />
-            )}{" "}
-            {busy ? "กำลังวิเคราะห์…" : "Analyze with AI"}
+            {busy && <LoaderCircle className="spin" size={16} />}{" "}
+            {busy ? "กำลังเทียบถ้อยคำ…" : "ตรวจโพสต์นี้"}
             <ArrowRight size={15} />
           </Button>
         </div>
@@ -132,6 +118,7 @@ export function Highlighted({ report }: { report: Report }) {
   );
 }
 export function Findings({
+  targetPhrase,
   report,
   go,
   notify,
@@ -139,8 +126,17 @@ export function Findings({
   report: Report;
   go: Go;
   notify: (v: string) => void;
+  targetPhrase: string | null;
 }) {
   const [tab, setTab] = useState<"claims" | "evidence">("claims");
+  const findingsRef = useRef<HTMLDivElement>(null);
+  const targetIndex = report.findings.findIndex(
+    (f) => f.phrase === targetPhrase,
+  );
+  useEffect(() => {
+    if (targetIndex >= 0)
+      findingsRef.current?.querySelectorAll("summary")[targetIndex]?.focus();
+  }, [targetIndex]);
   async function copy() {
     const summary = [
       "HypeCheck AI · ผลวิเคราะห์จำลอง",
@@ -161,9 +157,8 @@ export function Findings({
   return (
     <section className="panel report">
       <PanelHead
-        icon={FileSearch}
         title="ผลตรวจสอบโพสต์"
-        eyebrow="ANALYSIS REPORT"
+
         action={
           <button onClick={copy} className="square" aria-label="คัดลอกสรุปผล">
             <ClipboardCopy size={16} />
@@ -188,22 +183,24 @@ export function Findings({
         ))}
       </div>
       {tab === "claims" ? (
-        report.findings.map((f, i) => (
-          <Disclosure
-            key={i + report.text}
-            initial={i === 0}
-            title={
-              <span className="finding-title">
-                <b>“{f.phrase}”</b>
-                <small>{f.title}</small>
-              </span>
-            }
-          >
-            <Status color={evidenceColor(f.evidence)}>{f.evidence}</Status>
-            <p>{f.explanation}</p>
-            {f.reference && <small>{f.reference}</small>}
-          </Disclosure>
-        ))
+        <div ref={findingsRef}>
+          {report.findings.map((f, i) => (
+            <Disclosure
+              key={i + report.text}
+              initial={i === (targetIndex >= 0 ? targetIndex : 0)}
+              title={
+                <span className="finding-title">
+                  <b>“{f.phrase}”</b>
+                  <small>{f.title}</small>
+                </span>
+              }
+            >
+              <Status color={evidenceColor(f.evidence)}>{f.evidence}</Status>
+              <p>{f.explanation}</p>
+              {f.reference && <small>{f.reference}</small>}
+            </Disclosure>
+          ))}
+        </div>
       ) : (
         <div className="evidence-box">
           <BookOpen size={20} />

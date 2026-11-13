@@ -22,7 +22,7 @@ npm.cmd start
 
 ## Demo walkthrough
 
-1. Open Overview and choose one of four Thai sample posts or paste up to 3,000 characters. Select **Analyze with AI**.
+1. Open Overview and choose one of four Thai sample posts or paste up to 3,000 characters. Select **ตรวจโพสต์นี้**.
 2. Expand the highlighted findings in Fact Check. Open the evidence tab, inspect the reference, and copy the report summary. The initial dashboard displays the stock-promotion fixture until the next successful analysis.
 3. In AI Analysis, inspect the five linguistic signals, their matched phrases, and the exploratory writing-pattern explanation.
 4. Source Intelligence starts on the fixture’s source. Switch between three fictional publishers. Custom posts have unknown provenance and can browse the illustrative profiles separately.
@@ -48,7 +48,7 @@ Only an exact fixture (after trimming whitespace) can attach a synthetic referen
 | Path | Responsibility |
 | --- | --- |
 | `app/` | Next.js App Router, dashboard shell, hash navigation, shared session state and responsive styles |
-| `components/` | Workspace views, reusable panels, interactive charts and procedural terrain artwork |
+| `components/` | Workspace views, reusable panels, interactive charts and annotated excerpts from the active report |
 | `components/ui/` | Local shadcn-style Button primitive with Radix Slot and variant support |
 | `lib/data.ts` | Typed scenarios, synthetic references and source profiles |
 | `lib/analysis.ts` | Zod validation, deterministic analysis and asynchronous service contract |

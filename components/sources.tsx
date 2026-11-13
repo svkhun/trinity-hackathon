@@ -52,8 +52,7 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
       </div>
       <section className="panel">
         <PanelHead
-          icon={Fingerprint}
-          eyebrow="SOURCE PROFILE"
+
           title={p.name}
           action={<Status>{p.handle}</Status>}
         />
@@ -78,9 +77,9 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
       <div className="split equal">
         <section className="panel">
           <PanelHead
-            icon={Link2}
+
             title="การเปิดเผยแหล่งอ้างอิง"
-            eyebrow="CITATION AVAILABILITY"
+
           />
           <div className="donut-wrap">
             <div className="chart">
@@ -119,9 +118,9 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
         </section>
         <section className="panel">
           <PanelHead
-            icon={ClipboardList}
+
             title="กิจกรรมเผยแพร่"
-            eyebrow="CONTENT PATTERNS"
+
           />
           <div className="chart">
             <ResponsiveContainer width="100%" height="100%">
@@ -145,9 +144,9 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
       </div>
       <section className="panel">
         <PanelHead
-          icon={Clock3}
+
           title="ลำดับกิจกรรม"
-          eyebrow="ACTIVITY TIMELINE"
+
         />
         <ol className="timeline">
           {p.timeline.map((t, i) => (

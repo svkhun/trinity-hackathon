@@ -58,8 +58,7 @@ export function Analytics({ report, go }: { report: Report; go: Go }) {
       <div className="split equal">
         <section className="panel">
           <PanelHead
-            icon={Activity}
-            eyebrow="SIGNAL MAP"
+
             title="รูปแบบสัญญาณภาษา"
           />
           <div className="chart tall">
@@ -90,9 +89,9 @@ export function Analytics({ report, go }: { report: Report; go: Go }) {
         </section>
         <section className="panel">
           <PanelHead
-            icon={ScanText}
+
             title="อธิบายคะแนน"
-            eyebrow="SIGNAL DETAILS"
+
           />
           {data.map((m) => (
             <Disclosure
@@ -112,9 +111,9 @@ export function Analytics({ report, go }: { report: Report; go: Go }) {
       </div>
       <section className="panel">
         <PanelHead
-          icon={Braces}
+
           title="AI-Generated Content Signals"
-          eyebrow="EXPLORATORY HEURISTICS"
+
         />
         <p className="body-text">
           ตรวจรูปแบบภาษาที่อาจพบในงานเขียนที่ผ่านการเรียบเรียง เช่น

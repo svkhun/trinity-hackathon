@@ -74,9 +74,9 @@ export function RiskLab() {
       <div className="split lab-grid">
         <section className="panel lab-controls">
           <PanelHead
-            icon={SlidersHorizontal}
+
             title="ตั้งค่าสถานการณ์"
-            eyebrow="SIMULATION INPUTS"
+
             action={
               <button
                 className="square"
@@ -128,9 +128,9 @@ export function RiskLab() {
         </section>
         <section className="panel">
           <PanelHead
-            icon={ChartNoAxesCombined}
+
             title="Portfolio Simulation"
-            eyebrow="MONTE CARLO · SEED 42"
+
           />
           <div className="sim-values">
             <div>
@@ -188,9 +188,9 @@ export function RiskLab() {
       <div className="split equal">
         <section className="panel">
           <PanelHead
-            icon={Layers3}
+
             title="การกระจายมูลค่าปลายงวด"
-            eyebrow="VALUE DISTRIBUTION"
+
           />
           <div className="chart">
             <ResponsiveContainer width="100%" height="100%">
@@ -221,9 +221,9 @@ export function RiskLab() {
         </section>
         <section className="panel">
           <PanelHead
-            icon={GitCompareArrows}
+
             title="เปรียบเทียบแนวทาง"
-            eyebrow="SCENARIO COMPARISON"
+
           />
           <div className="chart">
             <ResponsiveContainer width="100%" height="100%">
