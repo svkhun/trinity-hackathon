@@ -12,13 +12,11 @@ export function Lead({
     report.findings.find((f) => f.phrase === "วงในยืนยันแล้ว") ??
     report.findings[0];
   const index = report.text.indexOf(finding.phrase);
-  const start = Math.max(0, index - 24),
-    end = Math.min(
-      report.text.length,
-      index + Math.min(58, finding.phrase.length) + 19,
-    );
-  const quote = report.text.slice(start, end);
-  const phrase = finding.phrase.slice(0, 58);
+  // Keep complete Thai words and combining marks when showing nearby context.
+  const before = report.text.slice(0, index);
+  const after = report.text.slice(index + finding.phrase.length);
+  const prefix = before.match(/(?:\S+\s+){0,4}$/u)?.[0] ?? "";
+  const suffix = after.match(/^\s+\S+/u)?.[0] ?? "";
   const name =
     scenarios.find((s) => s.id === report.scenario)?.name ?? "โพสต์ที่คุณป้อน";
   return (
@@ -44,11 +42,11 @@ export function Lead({
             <span>{name}</span>
           </header>
           <blockquote>
-            “{start > 0 ? "…" : ""}
-            {quote.slice(0, index - start)}
-            <mark>{phrase}</mark>
-            {quote.slice(index - start + phrase.length)}
-            {end < report.text.length ? "…" : ""}”
+            “{prefix.length < before.length ? "…" : ""}
+            {prefix}
+            <mark>{finding.phrase}</mark>
+            {suffix}
+            {suffix.length < after.length ? "…" : ""}”
           </blockquote>
           <button type="button" onClick={() => onRead(finding.phrase)}>
             <span className="proof-mark" aria-hidden="true">

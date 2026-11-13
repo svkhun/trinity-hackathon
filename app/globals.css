@@ -286,6 +286,12 @@ main {
   margin: var(--space-4) 0 6px;
   overflow-wrap: anywhere;
 }
+.proof blockquote {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .proof mark,
 .report mark {
   background: #f2dda0;
@@ -893,6 +899,7 @@ footer {
   color: var(--muted);
 }
 footer > span {
+  white-space: nowrap;
   margin-right: auto;
   font:
     italic 15px Georgia,
