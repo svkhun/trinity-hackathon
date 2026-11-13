@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import "@fontsource/bai-jamjuree/600.css";
-import "@fontsource/sarabun/400.css";
-import "@fontsource/sarabun/600.css";
+import "./fonts.css";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "HypeCheck AI — Think Before You Invest",
@@ -14,6 +12,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="th">
+      <head>
+        {["bai-jamjuree-thai-600", "sarabun-thai-400"].map((face) => (
+          <link
+            key={face}
+            rel="preload"
+            href={`/fonts/${face}-normal.woff2`}
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
+        ))}
+      </head>
       <body>{children}</body>
     </html>
   );
