@@ -175,7 +175,7 @@ export function RiskSummary({
           </div>
         ))}
       </div>
-      <button className="score-link" onClick={onOpen}>
+      <button type="button" className="score-link" onClick={onOpen}>
         ดูวิธีอ่านคะแนน <ArrowUpRight size={16} />
       </button>
     </section>

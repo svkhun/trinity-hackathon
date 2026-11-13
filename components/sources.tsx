@@ -1,15 +1,6 @@
 "use client";
 import { useState } from "react";
-import {
-  ArrowRight,
-  ClipboardList,
-  Clock3,
-  Fingerprint,
-  Link2,
-  Radio,
-  UserRound,
-  Waypoints,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -24,7 +15,7 @@ import {
 import { profiles, type SourceId } from "@/lib/data";
 import type { Report } from "@/lib/analysis";
 import { PanelHead, Status, type Go } from "./shared";
-import { tipStyle } from "./analytics";
+import { tipStyle, axisColor } from "./chart-style";
 import { Button } from "./ui/button";
 export function Sources({ report, go }: { report: Report; go: Go }) {
   const [id, set] = useState<SourceId>(report.source ?? "anon");
@@ -32,7 +23,6 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
   return (
     <>
       <div className="notice">
-        <Radio size={15} />{" "}
         {report.source
           ? "โปรไฟล์ในชุดข้อมูลของโพสต์นี้: " + profiles[report.source].name
           : "โพสต์ที่ป้อนเองยังไม่ทราบที่มา เลือกสำรวจโปรไฟล์ตัวอย่างด้านล่าง"}{" "}
@@ -41,6 +31,7 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
       <div className="profile-options">
         {(Object.keys(profiles) as SourceId[]).map((k) => (
           <button
+            type="button"
             className={k === id ? "active" : ""}
             key={k}
             aria-pressed={k === id}
@@ -51,11 +42,7 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
         ))}
       </div>
       <section className="panel">
-        <PanelHead
-
-          title={p.name}
-          action={<Status>{p.handle}</Status>}
-        />
+        <PanelHead title={p.name} action={<Status>{p.handle}</Status>} />
         <p className="body-text">{p.desc}</p>
         <div className="source-details">
           <div>
@@ -76,16 +63,13 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
       </section>
       <div className="split equal">
         <section className="panel">
-          <PanelHead
-
-            title="การเปิดเผยแหล่งอ้างอิง"
-
-          />
+          <PanelHead title="การเปิดเผยแหล่งอ้างอิง" />
           <div className="donut-wrap">
             <div className="chart">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
+                    isAnimationActive={false}
                     data={[
                       { name: "ระบุแหล่งที่มา", value: p.citations },
                       { name: "ไม่ระบุ", value: p.total - p.citations },
@@ -97,12 +81,12 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
                     startAngle={90}
                     endAngle={-270}
                   >
-                    <Cell fill="#c8ed84" />
-                    <Cell fill="#35333e" />
+                    <Cell fill="#577043" />
+                    <Cell fill="#c8c8b8" />
                   </Pie>
                   <Tooltip
                     contentStyle={tipStyle}
-                    itemStyle={{ color: "#fff" }}
+                    itemStyle={{ color: "#242720" }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -117,23 +101,20 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
           </p>
         </section>
         <section className="panel">
-          <PanelHead
-
-            title="กิจกรรมเผยแพร่"
-
-          />
+          <PanelHead title="กิจกรรมเผยแพร่" />
           <div className="chart">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={p.bars.map((v, i) => ({ week: "W" + (i + 1), posts: v }))}
               >
-                <XAxis dataKey="week" stroke="#9792a5" fontSize={11} />
-                <YAxis width={25} stroke="#9792a5" fontSize={11} />
-                <Tooltip contentStyle={tipStyle} cursor={{ fill: "#282534" }} />
+                <XAxis dataKey="week" stroke={axisColor} fontSize={11} />
+                <YAxis width={25} stroke={axisColor} fontSize={11} />
+                <Tooltip contentStyle={tipStyle} cursor={{ fill: "#e8e7d9" }} />
                 <Bar
+                  isAnimationActive={false}
                   name="โพสต์สมมติ"
                   dataKey="posts"
-                  fill="#9783f1"
+                  fill="#586f47"
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
@@ -143,11 +124,7 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
         </section>
       </div>
       <section className="panel">
-        <PanelHead
-
-          title="ลำดับกิจกรรม"
-
-        />
+        <PanelHead title="ลำดับกิจกรรม" />
         <ol className="timeline">
           {p.timeline.map((t, i) => (
             <li key={t}>

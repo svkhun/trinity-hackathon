@@ -9,9 +9,10 @@ test("each fixture has its own language profile and findings quote its text", ()
     new Set(reports.map((r) => r.metrics.map((m) => m.score).join(","))).size,
     4,
   );
-  reports.forEach((r) =>
-    r.findings.forEach((f) => assert.ok(r.text.includes(f.phrase))),
-  );
+  for (const report of reports) {
+    for (const finding of report.findings)
+      assert.ok(report.text.includes(finding.phrase));
+  }
   assert.ok(reports[0].score >= 60);
   assert.ok(reports[1].findings.some((f) => f.evidence === "Contradicted"));
   assert.ok(reports[2].findings.some((f) => f.evidence === "Supported"));

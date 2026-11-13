@@ -109,11 +109,19 @@ export function Highlighted({ report }: { report: Report }) {
       ")",
     "gi",
   );
+  const segments: React.ReactNode[] = [];
+  let offset = 0;
+  for (const match of report.text.matchAll(regex)) {
+    segments.push(
+      report.text.slice(offset, match.index),
+      <mark key={match.index}>{match[0]}</mark>,
+    );
+    offset = match.index + match[0].length;
+  }
   return (
     <>
-      {report.text
-        .split(regex)
-        .map((part, i) => (i % 2 ? <mark key={i}>{part}</mark> : part))}
+      {segments}
+      {report.text.slice(offset)}
     </>
   );
 }
@@ -160,7 +168,12 @@ export function Findings({
         title="ผลตรวจสอบโพสต์"
 
         action={
-          <button onClick={copy} className="square" aria-label="คัดลอกสรุปผล">
+          <button
+            type="button"
+            onClick={copy}
+            className="square"
+            aria-label="คัดลอกสรุปผล"
+          >
             <ClipboardCopy size={16} />
           </button>
         }
@@ -171,6 +184,7 @@ export function Findings({
       <div className="tab-strip">
         {(["claims", "evidence"] as const).map((t) => (
           <button
+            type="button"
             key={t}
             onClick={() => setTab(t)}
             aria-pressed={tab === t}
@@ -186,7 +200,7 @@ export function Findings({
         <div ref={findingsRef}>
           {report.findings.map((f, i) => (
             <Disclosure
-              key={i + report.text}
+              key={JSON.stringify([f.title, f.phrase])}
               initial={i === (targetIndex >= 0 ? targetIndex : 0)}
               title={
                 <span className="finding-title">

@@ -87,10 +87,10 @@ export function simulate(
     totals.lump.push(lump);
     totals.timing.push(timing + cash);
   }
-  approaches.forEach((key) => totals[key].sort((a, b) => a - b));
+  for (const key of approaches) totals[key].sort((a, b) => a - b);
   const values = totals[approach],
     min = values[0],
-    max = values.at(-1)!,
+    max = values[values.length - 1],
     width = (max - min) / 10 || 1;
   const histogram = Array.from({ length: 10 }, (_, i) => ({
     value: Math.round(min + i * width),

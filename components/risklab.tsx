@@ -1,13 +1,6 @@
 "use client";
-import { useMemo, useState } from "react";
-import {
-  ChartNoAxesCombined,
-  FlaskConical,
-  GitCompareArrows,
-  Layers3,
-  RotateCcw,
-  SlidersHorizontal,
-} from "lucide-react";
+import { useState, useMemo } from "react";
+import { RotateCcw } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -27,11 +20,16 @@ import {
   simulate,
   type Inputs,
 } from "@/lib/simulation";
-import { Button } from "./ui/button";
+
 import { Disclosure, PanelHead } from "./shared";
-import { tipStyle } from "./analytics";
+import { tipStyle, axisColor, chartColors } from "./chart-style";
 const money = new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 });
-const axis = { fill: "#a7a3b5", fontSize: 11 };
+const axis = { fill: axisColor, fontSize: 11 };
+const displayedPaths = Array.from({ length: 8 }, (_, i) => ({
+  key: "p" + i,
+  label: "เส้นทาง " + (i + 1),
+  color: chartColors[i % chartColors.length],
+}));
 const compact = (n: number) =>
   Intl.NumberFormat("en", { notation: "compact" }).format(n);
 export function RiskLab() {
@@ -67,18 +65,17 @@ export function RiskLab() {
   return (
     <>
       <div className="notice">
-        <FlaskConical size={16} />
         Illustrative simulation only. Not a prediction or investment
         recommendation.
       </div>
       <div className="split lab-grid">
         <section className="panel lab-controls">
           <PanelHead
-
             title="ตั้งค่าสถานการณ์"
 
             action={
               <button
+                type="button"
                 className="square"
                 title="คืนค่าเริ่มต้น"
                 onClick={() => set(defaults)}
@@ -127,11 +124,7 @@ export function RiskLab() {
           </label>
         </section>
         <section className="panel">
-          <PanelHead
-
-            title="Portfolio Simulation"
-
-          />
+          <PanelHead title="Portfolio Simulation" />
           <div className="sim-values">
             <div>
               <small>เงินต้นทั้งหมด</small>
@@ -150,7 +143,7 @@ export function RiskLab() {
                 data={result.paths}
                 margin={{ left: 0, right: 8, top: 8, bottom: 0 }}
               >
-                <CartesianGrid stroke="#302d3c" strokeDasharray="3 6" />
+                <CartesianGrid stroke="#d0d0bf" strokeDasharray="3 6" />
                 <XAxis dataKey="month" tick={axis} minTickGap={35} />
                 <YAxis tick={axis} tickFormatter={compact} width={45} />
                 <Tooltip
@@ -158,12 +151,12 @@ export function RiskLab() {
                   labelFormatter={(n) => "เดือน " + n}
                   formatter={(n) => "฿" + money.format(Number(n))}
                 />
-                {Array.from({ length: 8 }, (_, i) => (
+                {displayedPaths.map((path) => (
                   <Line
-                    key={i}
-                    dataKey={"p" + i}
-                    name={"เส้นทาง " + (i + 1)}
-                    stroke={["#ab94ff", "#7b6fca", "#e28cb9", "#a4b5e3"][i % 4]}
+                    key={path.key}
+                    dataKey={path.key}
+                    name={path.label}
+                    stroke={path.color}
                     strokeOpacity={0.8}
                     dot={false}
                     isAnimationActive={false}
@@ -171,7 +164,7 @@ export function RiskLab() {
                 ))}
                 <Line
                   dataKey="contribution"
-                  stroke="#c8f36b"
+                  stroke="#232720"
                   name="เงินต้น"
                   dot={false}
                   strokeDasharray="4 5"
@@ -181,17 +174,13 @@ export function RiskLab() {
             </ResponsiveContainer>
           </div>
           <p className="chart-caption">
-            เดือนที่ลงทุน · แสดง 8 จาก 240 เส้นทาง · เส้นประคือเงินต้นสะสม
+            Seed 42 · เดือนที่ลงทุน · แสดง 8 จาก 240 เส้นทาง · เส้นประคือเงินต้นสะสม
           </p>
         </section>
       </div>
       <div className="split equal">
         <section className="panel">
-          <PanelHead
-
-            title="การกระจายมูลค่าปลายงวด"
-
-          />
+          <PanelHead title="การกระจายมูลค่าปลายงวด" />
           <div className="chart">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={result.histogram}>
@@ -199,7 +188,7 @@ export function RiskLab() {
                 <YAxis width={30} tick={axis} />
                 <Tooltip
                   contentStyle={tipStyle}
-                  cursor={{ fill: "#272432" }}
+                  cursor={{ fill: "#e8e7d9" }}
                   labelFormatter={(v) =>
                     "มูลค่าเริ่มช่วง ฿" + money.format(Number(v))
                   }
@@ -207,7 +196,7 @@ export function RiskLab() {
                 <Bar
                   name="จำนวนเส้นทาง"
                   dataKey="count"
-                  fill="#a28bf5"
+                  fill="#657a51"
                   radius={[3, 3, 0, 0]}
                   isAnimationActive={false}
                 />
@@ -220,11 +209,7 @@ export function RiskLab() {
           </p>
         </section>
         <section className="panel">
-          <PanelHead
-
-            title="เปรียบเทียบแนวทาง"
-
-          />
+          <PanelHead title="เปรียบเทียบแนวทาง" />
           <div className="chart">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={result.comparison} layout="vertical">
@@ -232,7 +217,7 @@ export function RiskLab() {
                 <YAxis type="category" dataKey="name" width={110} tick={axis} />
                 <Tooltip
                   contentStyle={tipStyle}
-                  cursor={{ fill: "#272432" }}
+                  cursor={{ fill: "#e8e7d9" }}
                   formatter={(v) => "฿" + money.format(Number(v))}
                 />
                 <Bar

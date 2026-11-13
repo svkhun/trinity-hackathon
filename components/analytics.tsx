@@ -1,12 +1,5 @@
 "use client";
-import {
-  Activity,
-  ArrowRight,
-  BookOpen,
-  Braces,
-  ScanText,
-  Waypoints,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import {
   RadarChart,
   Radar,
@@ -18,14 +11,9 @@ import {
 import { Button } from "./ui/button";
 import { Disclosure, PanelHead, Ring, type Go } from "./shared";
 import type { Report } from "@/lib/analysis";
+import { axisColor, tipStyle } from "./chart-style";
 const labels = ["FOMO", "Urgency", "Claims", "Emotion", "Consistency"];
-export const tipStyle = {
-  background: "#201e2c",
-  border: "1px solid #494457",
-  borderRadius: 8,
-  color: "#eee",
-  fontSize: 12,
-};
+
 export function Analytics({ report, go }: { report: Report; go: Go }) {
   const data = report.metrics.map((m, i) => ({
     ...m,
@@ -57,29 +45,28 @@ export function Analytics({ report, go }: { report: Report; go: Go }) {
       </div>
       <div className="split equal">
         <section className="panel">
-          <PanelHead
-
-            title="รูปแบบสัญญาณภาษา"
-          />
+          <PanelHead title="รูปแบบสัญญาณภาษา" />
           <div className="chart tall">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={data} outerRadius="70%">
-                <PolarGrid stroke="#413e4f" />
+                <PolarGrid stroke="#bbbba8" />
                 <PolarAngleAxis
                   dataKey="axis"
-                  tick={{ fill: "#ada9bc", fontSize: 11 }}
+                  tick={{ fill: axisColor, fontSize: 11 }}
                 />
                 <Radar
+                  isAnimationActive={false}
                   dataKey="max"
                   stroke="none"
                   fill="transparent"
                   tooltipType="none"
                 />
                 <Radar
+                  isAnimationActive={false}
                   name="คะแนนจำลอง"
                   dataKey="score"
-                  stroke="#a58cff"
-                  fill="#9177ed"
+                  stroke="#8d3020"
+                  fill="#b9704c"
                   fillOpacity={0.38}
                 />
                 <Tooltip contentStyle={tipStyle} />
@@ -88,11 +75,7 @@ export function Analytics({ report, go }: { report: Report; go: Go }) {
           </div>
         </section>
         <section className="panel">
-          <PanelHead
-
-            title="อธิบายคะแนน"
-
-          />
+          <PanelHead title="อธิบายคะแนน" />
           {data.map((m) => (
             <Disclosure
               key={m.label}
@@ -110,11 +93,7 @@ export function Analytics({ report, go }: { report: Report; go: Go }) {
         </section>
       </div>
       <section className="panel">
-        <PanelHead
-
-          title="AI-Generated Content Signals"
-
-        />
+        <PanelHead title="AI-Generated Content Signals" />
         <p className="body-text">
           ตรวจรูปแบบภาษาที่อาจพบในงานเขียนที่ผ่านการเรียบเรียง เช่น
           ความสม่ำเสมอของประโยคและการย้ำอารมณ์ รูปแบบเหล่านี้พบในงานเขียนของคนได้เช่นกัน
