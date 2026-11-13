@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import "@fontsource/noto-serif-thai/thai-600.css";
-import "@fontsource/noto-sans-thai/thai-400.css";
-import "@fontsource/noto-sans-thai/thai-600.css";
-import "@fontsource/noto-sans-thai/thai-700.css";
+import "@fontsource/bai-jamjuree/600.css";
+import "@fontsource/sarabun/400.css";
+import "@fontsource/sarabun/600.css";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "HypeCheck AI — Think Before You Invest",

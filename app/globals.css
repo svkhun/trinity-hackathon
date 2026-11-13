@@ -26,8 +26,8 @@
   --shadow: 3px 4px 0 #d3d0bd;
   --fast: 140ms;
   --ease: ease-out;
-  --serif: Georgia, "Noto Serif Thai", serif;
-  --sans: Arial, "Noto Sans Thai", sans-serif;
+  --display: "Bai Jamjuree", "Sarabun", sans-serif;
+  --sans: "Sarabun", Arial, sans-serif;
   --small: 0.8125rem;
   --body: 1rem;
   --title: clamp(2.35rem, 5.1vw, 4.7rem);
@@ -147,9 +147,7 @@ main {
   white-space: nowrap;
 }
 .brand b {
-  font:
-    700 28px/0.95 Georgia,
-    serif;
+  font: 700 28px/0.95 var(--display);
   letter-spacing: -1.55px;
   color: var(--ink);
 }
@@ -243,8 +241,8 @@ main {
 }
 .lead h1 {
   margin: 13px 0 8px;
-  font: 600 var(--title)/1.17 var(--serif);
-  letter-spacing: -0.045em;
+  font: 600 var(--title)/1.17 var(--display);
+  letter-spacing: -0.018em;
 }
 .lead h1 em {
   font-style: normal;
@@ -282,7 +280,7 @@ main {
   color: var(--ink);
 }
 .proof blockquote {
-  font: 600 clamp(19px, 2vw, 29px)/1.62 var(--serif);
+  font: 600 clamp(19px, 2vw, 29px)/1.62 var(--display);
   margin: var(--space-4) 0 6px;
   overflow-wrap: anywhere;
 }
@@ -307,7 +305,7 @@ main {
   font-weight: 600;
 }
 .proof-mark {
-  font: italic 26px var(--serif);
+  font: italic 26px var(--display);
 }
 .proof button:hover,
 .score-link:hover {
@@ -332,8 +330,8 @@ main {
 .panel h2,
 .report-index h2,
 .guide-dialog h2 {
-  font: 600 clamp(21px, 2.2vw, 29px)/1.45 var(--serif);
-  letter-spacing: -0.035em;
+  font: 600 clamp(21px, 2.2vw, 29px)/1.45 var(--display);
+  letter-spacing: -0.012em;
 }
 .panel-head,
 .composer-head,
@@ -356,9 +354,7 @@ main {
   margin-bottom: var(--space-4);
 }
 .folio {
-  font:
-    italic 16px/1.25 Georgia,
-    serif;
+  font: 600 14px/1.25 var(--display);
   color: var(--accent);
   display: block;
   margin-bottom: 4px;
@@ -405,7 +401,7 @@ textarea {
   color: var(--ink);
   background: none;
   border: 0;
-  font: 600 19px/1.75 var(--serif);
+  font: 400 19px/1.75 var(--sans);
 }
 textarea:focus-visible {
   outline-offset: -3px;
@@ -493,9 +489,7 @@ textarea:focus-visible {
   gap: 7px;
 }
 .score-main strong {
-  font:
-    normal 62px/1 Georgia,
-    serif;
+  font: normal 62px/1 var(--display);
   letter-spacing: -3px;
   color: #e1edb7;
 }
@@ -572,8 +566,8 @@ textarea:focus-visible {
   padding: 12px 0 20px;
 }
 .page-heading h1 {
-  font: 600 clamp(36px, 4vw, 56px)/1.2 var(--serif);
-  letter-spacing: -0.045em;
+  font: 600 clamp(36px, 4vw, 56px)/1.2 var(--display);
+  letter-spacing: -0.018em;
   margin-bottom: 6px;
 }
 .section-actions {
@@ -596,7 +590,7 @@ textarea:focus-visible {
   background: #eee9d8;
   border-left: 3px solid var(--accent);
   padding: 16px 20px;
-  font: 600 20px/1.8 var(--serif);
+  font: 600 20px/1.8 var(--display);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -642,9 +636,7 @@ textarea:focus-visible {
 }
 .disclosure summary em {
   margin-left: auto;
-  font:
-    15px Georgia,
-    serif;
+  font: 15px var(--display);
 }
 .disclosure summary em + svg {
   margin-left: 0;
@@ -665,7 +657,7 @@ textarea:focus-visible {
   overflow-wrap: anywhere;
 }
 .finding-title b {
-  font: 600 18px var(--serif);
+  font: 600 18px var(--display);
 }
 .finding-title small,
 .select-label {
@@ -730,9 +722,7 @@ textarea:focus-visible {
   justify-items: center;
 }
 .score-gauge strong {
-  font:
-    30px/1 Georgia,
-    serif;
+  font: 30px/1 var(--display);
   color: var(--ink);
 }
 .score-gauge small {
@@ -784,9 +774,7 @@ textarea:focus-visible {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  font:
-    34px Georgia,
-    serif;
+  font: 34px var(--display);
 }
 .donut-wrap small,
 .timeline small {
@@ -833,9 +821,7 @@ textarea:focus-visible {
   gap: 26px;
 }
 .sim-values strong {
-  font:
-    600 clamp(21px, 2vw, 29px) Georgia,
-    serif;
+  font: 600 clamp(21px, 2vw, 29px) var(--display);
   font-variant-numeric: tabular-nums;
 }
 .lime-text {
@@ -901,9 +887,7 @@ footer {
 footer > span {
   white-space: nowrap;
   margin-right: auto;
-  font:
-    italic 15px Georgia,
-    serif;
+  font: 600 15px var(--display);
 }
 @media (max-width: 1000px) {
   .mast-inner,
