@@ -1,0 +1,26 @@
+[
+  {
+    "viewport": 390,
+    "scrollWidth": 390,
+    "domNodes": 213,
+    "svgNodes": 48,
+    "primaryTop": 629,
+    "smallTargets": []
+  },
+  {
+    "viewport": 768,
+    "scrollWidth": 768,
+    "domNodes": 213,
+    "svgNodes": 48,
+    "primaryTop": 607,
+    "smallTargets": []
+  },
+  {
+    "viewport": 1440,
+    "scrollWidth": 1440,
+    "domNodes": 213,
+    "svgNodes": 48,
+    "primaryTop": 675,
+    "smallTargets": []
+  }
+]

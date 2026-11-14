@@ -1,0 +1,181 @@
+{
+  "checks": [
+    "Thai display and body faces loaded from local files",
+    "Keyboard skip control enters main",
+    "Keyboard opens guide, Escape closes and restores focus",
+    "Annotation opens and focuses matching disclosure; Space collapses",
+    "Empty input announces validation and focuses field",
+    "Custom input and insufficient evidence",
+    "Supported fixture, reanalysis and copied report",
+    "Report persists through analytics and source profile switching",
+    "Keyboard slider, approach selection and reset",
+    "Browser Back resolves hash navigation",
+    "Reduced motion enabled, zero transition duration, no active animations",
+    "All five routes fit three widths; no uncaught page errors"
+  ],
+  "fonts": {
+    "heading": "\"Bai Jamjuree\", Sarabun, sans-serif",
+    "input": "Sarabun, Arial, sans-serif",
+    "loaded": [
+      [
+        "Bai Jamjuree",
+        "600"
+      ],
+      [
+        "Bai Jamjuree",
+        "600"
+      ],
+      [
+        "Sarabun",
+        "400"
+      ],
+      [
+        "Sarabun",
+        "400"
+      ],
+      [
+        "Sarabun",
+        "600"
+      ],
+      [
+        "Sarabun",
+        "600"
+      ]
+    ]
+  },
+  "reduced": {
+    "enabled": true,
+    "transition": "0s",
+    "animations": 0
+  },
+  "layout": [
+    {
+      "view": "overview",
+      "width": 390,
+      "documentWidth": 390
+    },
+    {
+      "view": "fact-check",
+      "width": 390,
+      "documentWidth": 390
+    },
+    {
+      "view": "ai-analysis",
+      "width": 390,
+      "documentWidth": 390
+    },
+    {
+      "view": "sources",
+      "width": 390,
+      "documentWidth": 390
+    },
+    {
+      "view": "risklab",
+      "width": 390,
+      "documentWidth": 390
+    },
+    {
+      "view": "overview",
+      "width": 768,
+      "documentWidth": 768
+    },
+    {
+      "view": "fact-check",
+      "width": 768,
+      "documentWidth": 768
+    },
+    {
+      "view": "ai-analysis",
+      "width": 768,
+      "documentWidth": 768
+    },
+    {
+      "view": "sources",
+      "width": 768,
+      "documentWidth": 768
+    },
+    {
+      "view": "risklab",
+      "width": 768,
+      "documentWidth": 768
+    },
+    {
+      "view": "overview",
+      "width": 1440,
+      "documentWidth": 1440
+    },
+    {
+      "view": "fact-check",
+      "width": 1440,
+      "documentWidth": 1440
+    },
+    {
+      "view": "ai-analysis",
+      "width": 1440,
+      "documentWidth": 1440
+    },
+    {
+      "view": "sources",
+      "width": 1440,
+      "documentWidth": 1440
+    },
+    {
+      "view": "risklab",
+      "width": 1440,
+      "documentWidth": 1440
+    }
+  ],
+  "accessibility": [
+    {
+      "view": "overview",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "view": "fact-check",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "view": "ai-analysis",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "view": "sources",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "view": "risklab",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "view": "overview",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "view": "fact-check",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "view": "ai-analysis",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "view": "sources",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "view": "risklab",
+      "width": 1440,
+      "violations": []
+    }
+  ],
+  "errors": []
+}
