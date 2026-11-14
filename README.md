@@ -20,6 +20,24 @@ npm.cmd run build
 npm.cmd start
 ```
 
+## Deploy to Vercel
+
+Import [svkhun/trinity-hackathon](https://github.com/svkhun/trinity-hackathon) into a new Vercel project. Select the `redesign/ux-ui` branch for the first deployment and set it as the Production Branch in the project's Git settings.
+
+| Setting | Value |
+| --- | --- |
+| Framework Preset | Next.js |
+| Root Directory | Repository root |
+| Node.js | 24.x |
+| Install Command | `npm ci` |
+| Build Command | `npm run build` |
+| Output Directory | Next.js default |
+| Environment Variables | None required |
+
+`vercel.json` declares the framework and build/install commands. `package.json` pins the Node.js major version. The lockfile provides reproducible dependency versions. After deployment, check Overview, Fact Check, AI Analysis, Source Intelligence, and RiskLab, including a custom post and a changed simulation input.
+
+Official references are [Vercel build configuration](https://vercel.com/docs/builds/configure-a-build) and [supported Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions).
+
 ## Demo walkthrough
 
 1. Open Overview and choose one of four Thai sample posts or paste up to 3,000 characters. Select **ตรวจโพสต์นี้**.
