@@ -1,9 +1,11 @@
 "use client";
 import { ArrowRight } from "lucide-react";
 import type { Report } from "@/lib/analysis";
-import { scenarios } from "@/lib/data";
 import { copy, type Locale } from "@/lib/i18n";
-import type { Go } from "./shared";
+import { tx, ui } from "@/lib/i18n-extra";
+import { PageHead, ScoreFigure, type Go } from "./shared";
+
+const toneOf = (n: number) => (n >= 60 ? "high" : n >= 25 ? "mid" : "low");
 
 export function Analytics({
   locale,
@@ -14,20 +16,15 @@ export function Analytics({
   report: Report;
   go: Go;
 }) {
-  const t = copy[locale].analysis;
-  const tov = copy[locale].overview;
-  const metricsNames = copy[locale].metrics;
-  const metricDescEn = copy[locale].metricDescEn;
+  const c = copy[locale];
+  const t = c.analysis;
+  const u = ui[locale].analysis;
+  const tov = c.overview;
 
   const activeName =
     report.scenario !== "custom"
-      ? copy[locale].scenarios[report.scenario] ??
-        scenarios.find((s) => s.id === report.scenario)?.name ??
-        report.scenario
+      ? (c.scenarios[report.scenario] ?? report.scenario)
       : tov.customName;
-
-  const levelTone =
-    report.score >= 60 ? "high" : report.score >= 25 ? "mid" : "low";
   const levelText =
     report.score >= 60
       ? tov.levelHigh
@@ -35,128 +32,160 @@ export function Analytics({
         ? tov.levelMid
         : tov.levelLow;
 
+  const describe = (label: string, original: string) =>
+    locale === "en"
+      ? label === "Text Consistency"
+        ? tx("en", original)
+        : (c.metricDescEn[label] ?? original).trim()
+      : original;
+
+  // Sentence rhythm: real sentence segments when there are 2+, otherwise
+  // fall back to space-separated clauses and say so.
+  const sentenceLens = report.text
+    .split(/[.!?。！？\n]+/u)
+    .map((s) => Array.from(s.trim()).length)
+    .filter((n) => n > 0);
+  const useSentences = sentenceLens.length > 1;
+  const lens = useSentences
+    ? sentenceLens
+    : report.text
+        .split(/\s+/u)
+        .map((s) => Array.from(s.trim()).length)
+        .filter((n) => n > 0)
+        .slice(0, 10);
+  const maxLen = Math.max(1, ...lens);
+  const unitLabel = useSentences
+    ? u.sentence
+    : (n: number) => (locale === "th" ? `ช่วงที่ ${n}` : `Clause ${n}`);
+
   return (
     <div className="mc-page">
-      {/* Editorial Report Header */}
-      <section className="mc-band mc-band-white">
-        <div className="mc-container mc-page-head">
-          <span className="mc-eyebrow">{t.eyebrow}</span>
-          <h1 className="mc-display">
-            {t.headlineLine1}
-            <br />
-            {t.headlineLine2}
-          </h1>
-          <p className="mc-lead-deck">{t.deck}</p>
-        </div>
-      </section>
+      <PageHead
+        crumb={t.eyebrow}
+        line1={t.headlineLine1}
+        line2={t.headlineLine2}
+        deck={t.deck}
+      />
 
-      {/* Band 1: Executive Linguistic Summary & Proportional Bars on Warm Neutral */}
+      {/* Summary: one figure + all five dimensions side by side */}
       <section className="mc-band mc-band-warm">
-        <div className="mc-container mc-work-grid">
+        <div className="mc-container mc-summary">
           <div>
             <span className="mc-muted-label">{t.summaryLabel}</span>
-            <div className="mc-score-figure">
-              <strong>{report.score}</strong>
-              <span>/ 100</span>
-            </div>
-            <p className="mc-score-context">
-              <span className={"mc-tone-" + levelTone}>{levelText}</span>
-              {" · "}
-              {activeName}
-            </p>
-            <blockquote className="mc-quote" style={{ marginTop: 24 }}>
-              “{report.text}”
-            </blockquote>
+            <ScoreFigure
+              score={report.score}
+              levelText={levelText}
+              context={activeName}
+            />
+            <blockquote className="mc-quote">“{report.text}”</blockquote>
           </div>
 
-          <div className="mc-signal-col">
-            <h2 className="mc-sub-h2">{t.dimensionsHeading}</h2>
-            <div className="mc-proportion-list">
-              {report.metrics.map((m) => {
-                const barTone =
-                  m.score >= 60 ? "high" : m.score >= 25 ? "mid" : "low";
-                return (
-                  <div className="mc-proportion-item" key={m.label}>
-                    <div className="mc-proportion-top">
-                      <span>{metricsNames[m.label] ?? m.label}</span>
-                      <b>{m.score} / 100</b>
-                    </div>
-                    <div className="mc-proportion-track" aria-hidden="true">
-                      <i
-                        className={"mc-fill-" + barTone}
-                        style={{ width: `${Math.max(2, m.score)}%` }}
-                      />
-                    </div>
+          <div>
+            <h2 className="mc-h3">{t.dimensionsHeading}</h2>
+            <ul className="mc-bars">
+              {report.metrics.map((m) => (
+                <li key={m.label}>
+                  <div className="mc-bars-top">
+                    <span>{c.metrics[m.label] ?? m.label}</span>
+                    <b>{m.score}</b>
                   </div>
-                );
-              })}
-            </div>
+                  <div className="mc-track" aria-hidden="true">
+                    <i
+                      className={"mc-fill-" + toneOf(m.score)}
+                      style={{ width: `${Math.max(2, m.score)}%` }}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
 
-      {/* Band 2: Editorial Dimension Findings (Asymmetric Rail) */}
+      {/* Per-dimension findings */}
       <section className="mc-band mc-band-white">
-        <div className="mc-container mc-explore-grid">
-          <div className="mc-rail-meta">
-            <h2 className="mc-explore-h2">{t.findingsRailTitle}</h2>
-            <p className="mc-explore-sub">{t.findingsRailSub}</p>
+        <div className="mc-container mc-split">
+          <div className="mc-sticky-side">
+            <h2 className="mc-h2">{t.findingsRailTitle}</h2>
+            <p className="mc-side-note">{t.findingsRailSub}</p>
           </div>
-
-          <div className="mc-editorial-list">
-            {report.metrics.map((m) => {
-              const desc =
-                locale === "en" && metricDescEn[m.label]
-                  ? metricDescEn[m.label]
-                  : m.description;
-              return (
-                <article className="mc-editorial-item" key={m.label}>
-                  <div className="mc-editorial-head">
-                    <h3>{metricsNames[m.label] ?? m.label}</h3>
-                    <span className="mc-editorial-score">{m.score} / 100</span>
-                  </div>
-                  <p className="mc-prose">{desc}</p>
-                  {m.phrases.length > 0 ? (
-                    <p className="mc-matched-line">
-                      <span>{t.matchedPrefix}</span>
-                      {m.phrases.map((ph, idx) => (
-                        <span key={ph}>
-                          {idx > 0 ? " · " : ""}
-                          <mark className="mc-inline-mark">“{ph}”</mark>
-                        </span>
-                      ))}
-                    </p>
-                  ) : (
-                    <p className="mc-fineprint">{t.noMatches}</p>
-                  )}
-                </article>
-              );
-            })}
+          <div className="mc-dims">
+            {report.metrics.map((m) => (
+              <article className="mc-dim" key={m.label}>
+                <header>
+                  <h3>{c.metrics[m.label] ?? m.label}</h3>
+                  <span className={"mc-dim-score mc-tone-" + toneOf(m.score)}>
+                    {m.score}
+                    <small>/100</small>
+                  </span>
+                </header>
+                <p className="mc-prose">{describe(m.label, m.description)}</p>
+                {m.phrases.length > 0 ? (
+                  <p className="mc-matched">
+                    <span>{t.matchedPrefix}</span>
+                    {m.phrases.map((ph) => (
+                      <mark key={ph}>“{ph}”</mark>
+                    ))}
+                  </p>
+                ) : (
+                  <p className="mc-fineprint">{t.noMatches}</p>
+                )}
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Band 3: Cadence & Methodology Limits on Warm Neutral */}
+      {/* Sentence rhythm + limits */}
       <section className="mc-band mc-band-warm">
-        <div className="mc-container mc-explore-grid">
-          <div className="mc-rail-meta">
-            <h2 className="mc-explore-h2">{t.cadenceRailTitle}</h2>
-            <p className="mc-explore-sub">{t.cadenceRailSub}</p>
+        <div className="mc-container mc-split">
+          <div className="mc-sticky-side">
+            <h2 className="mc-h2">{t.cadenceRailTitle}</h2>
+            <p className="mc-side-note">{t.cadenceRailSub}</p>
           </div>
-
-          <div className="mc-editorial-notes">
+          <div className="mc-notes">
             <div>
-              <h3 className="mc-sub-h2">{t.cadenceTitle}</h3>
+              <h3 className="mc-h3">{u.rhythmTitle}</h3>
+              <figure className="mc-rhythm">
+                <div
+                  className="mc-rhythm-bars"
+                  role="img"
+                  aria-label={lens
+                    .map((n, i) => `${unitLabel(i + 1)}: ${n} ${u.rhythmUnit}`)
+                    .join(", ")}
+                >
+                  {lens.map((n, i) => (
+                    <div className="mc-rhythm-col" key={i}>
+                      <span className="mc-rhythm-val">{n}</span>
+                      <i style={{ height: `${Math.max(6, (n / maxLen) * 140)}px` }} />
+                      <span className="mc-rhythm-lab">{i + 1}</span>
+                    </div>
+                  ))}
+                </div>
+                <figcaption className="mc-fineprint">
+                  {useSentences
+                    ? u.rhythmNote
+                    : `${u.rhythmSingle} ${
+                        locale === "th"
+                          ? "แท่งด้านบนแสดงความยาวคำ/วลีที่คั่นด้วยช่องว่างแทน"
+                          : "The bars above show space-separated phrases instead."
+                      }`}
+                </figcaption>
+              </figure>
+            </div>
+
+            <div>
+              <h3 className="mc-h3">{t.cadenceTitle}</h3>
               <p className="mc-prose">{t.cadenceBody}</p>
               <p className="mc-fineprint">{t.cadenceStat(report.fragments)}</p>
             </div>
 
-            <div className="mc-note-divider" />
-
             <div>
-              <h3 className="mc-sub-h2">{t.evidenceBoundaryTitle}</h3>
+              <h3 className="mc-h3">{t.evidenceBoundaryTitle}</h3>
               <p className="mc-prose">
-                {report.reference?.body ?? t.evidenceBoundaryFallback}
+                {report.reference
+                  ? tx(locale, report.reference.body)
+                  : t.evidenceBoundaryFallback}
               </p>
             </div>
 

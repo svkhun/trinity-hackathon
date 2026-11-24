@@ -20,13 +20,6 @@ const RiskLab = dynamic(() =>
 import { analyzePost, mockAnalysisService, postSchema } from "@/lib/analysis";
 import { scenarios } from "@/lib/data";
 
-const titles: Record<Exclude<View, "overview">, [string, string]> = {
-  "fact-check": ["Fact Check", "ตรวจสอบถ้อยคำและหลักฐานประกอบโพสต์การลงทุน"],
-  "ai-analysis": ["AI Analysis", "สำรวจสัญญาณภาษาและเหตุผลเบื้องหลังคะแนนจำลอง"],
-  sources: ["Source Intelligence", "สำรวจที่มาและความโปร่งใสของแหล่งข้อมูลตัวอย่าง"],
-  risklab: ["RiskLab", "ทดลองเปลี่ยนสมมติฐานเพื่อเข้าใจความไม่แน่นอนของการลงทุน"],
-};
-
 function readView(): View {
   return (
     navItems.find((n) => "#" + n.id === window.location.hash)?.id ?? "overview"
@@ -295,24 +288,10 @@ export default function Page() {
           />
         ) : view === "ai-analysis" ? (
           <Analytics locale={locale} report={report} go={go} />
+        ) : view === "sources" ? (
+          <Sources locale={locale} report={report} go={go} />
         ) : (
-          /* Remaining pages preserved untouched during Phase 2 prototype review */
-          <div className="legacy-subpage-wrap">
-            <div className="page" key={view}>
-              <header className="page-heading">
-                <div>
-                  <h1>{titles[view][0]}</h1>
-                  <p>{titles[view][1]}</p>
-                </div>
-              </header>
-
-              {view === "sources" ? (
-                <Sources report={report} go={go} />
-              ) : (
-                <RiskLab />
-              )}
-            </div>
-          </div>
+          <RiskLab locale={locale} />
         )}
       </main>
 

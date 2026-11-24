@@ -2,12 +2,13 @@
 import { useMemo, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import {
+  Area,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
+  ComposedChart,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -15,345 +16,334 @@ import {
 } from "recharts";
 import {
   approaches,
-  approachNames,
   defaults,
   simulate,
+  simulateBands,
   type Inputs,
 } from "@/lib/simulation";
+import { copy, type Locale } from "@/lib/i18n";
+import { ui } from "@/lib/i18n-extra";
+import { Disclosure, PageHead } from "./shared";
+import { axisColor, chartGrid, chartHover, tipStyle } from "./chart-style";
 
-import { Disclosure, PanelHead } from "./shared";
-import {
-  axisColor,
-  chartColors,
-  chartGrid,
-  chartHover,
-  tipStyle,
-} from "./chart-style";
-
-const money = new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 });
-const axis = {
-  fill: axisColor,
-  fontSize: 12,
-  fontFamily: '"IBM Plex Mono", monospace',
-};
-const displayedPaths = Array.from({ length: 8 }, (_, i) => ({
-  key: "p" + i,
-  label: "เส้นทาง " + (i + 1),
-  color: chartColors[i % chartColors.length],
-}));
 const compact = (n: number) =>
   Intl.NumberFormat("en", { notation: "compact" }).format(n);
 
-export function RiskLab() {
+type Control = {
+  key: "amount" | "years" | "rate" | "vol";
+  min: number;
+  max: number;
+  step: number;
+};
+const controls: Control[] = [
+  { key: "amount", min: 500, max: 50000, step: 500 },
+  { key: "years", min: 1, max: 20, step: 1 },
+  { key: "rate", min: -10, max: 20, step: 0.5 },
+  { key: "vol", min: 0, max: 60, step: 1 },
+];
+
+export function RiskLab({ locale }: { locale: Locale }) {
+  const c = copy[locale];
+  const t = c.risklab;
+  const u = ui[locale].risklab;
   const [inputs, set] = useState<Inputs>(defaults);
+
   const result = useMemo(() => simulate(inputs), [inputs]);
-  const controls = [
-    {
-      key: "amount",
-      label: "เงินลงทุนต่อเดือน",
-      min: 500,
-      max: 50000,
-      step: 500,
-      unit: "บาท",
-    },
-    {
-      key: "years",
-      label: "ระยะเวลาลงทุน",
-      min: 1,
-      max: 20,
-      step: 1,
-      unit: "ปี",
-    },
-    {
-      key: "rate",
-      label: "ผลตอบแทนต่อปีที่สมมติ",
-      min: -10,
-      max: 20,
-      step: 0.5,
-      unit: "%",
-    },
-    {
-      key: "vol",
-      label: "ความผันผวนต่อปี",
-      min: 0,
-      max: 60,
-      step: 1,
-      unit: "%",
-    },
-  ] as const;
+  const bands = useMemo(() => simulateBands(inputs), [inputs]);
+
+  const nf = useMemo(
+    () => new Intl.NumberFormat(locale === "th" ? "th-TH" : "en-US", { maximumFractionDigits: 0 }),
+    [locale],
+  );
+  const baht = (n: number) => `฿${nf.format(n)}`;
+  const gain = result.median - result.contribution;
+
+  const labelOf: Record<Control["key"], string> = {
+    amount: t.amountLabel,
+    years: t.yearsLabel,
+    rate: t.rateLabel,
+    vol: t.volLabel,
+  };
+  const display = (k: Control["key"]) => {
+    const v = inputs[k];
+    if (k === "amount") return `฿${nf.format(v)}`;
+    if (k === "years") return `${v} ${t.yearsUnit}`;
+    return `${v}%`;
+  };
+
+  const yearsTotal = inputs.years;
+  const step = yearsTotal > 10 ? 24 : 12;
+  const ticks = Array.from(
+    { length: Math.floor((yearsTotal * 12) / step) + 1 },
+    (_, i) => i * step,
+  );
+
+  const maxComparison = Math.max(...result.comparison.map((x) => x.value));
 
   return (
-    <>
-      <div className="notice">
-        ทดลองปรับสมมติฐานและสำรวจผลลัพธ์ที่เป็นไปได้ · ข้อมูลจำลองเพื่อการเรียนรู้ ไม่ใช่การคาดการณ์หรือคำแนะนำการลงทุน
-      </div>
+    <div className="mc-page">
+      <PageHead
+        crumb={t.eyebrow}
+        line1={t.headlineLine1}
+        line2={t.headlineLine2}
+        deck={t.deck}
+      />
 
-      <div className="split lab-grid">
-        <section className="panel lab-controls">
-          <PanelHead
-            title="ตั้งค่าสถานการณ์"
-            action={
+      <section className="mc-band mc-band-white">
+        <div className="mc-container mc-lab">
+          {/* Scenario controls */}
+          <aside className="mc-panel-warm mc-sticky" aria-label={t.scenarioHeading}>
+            <div className="mc-row-between">
+              <h2 className="mc-h2">{t.scenarioHeading}</h2>
               <button
                 type="button"
-                className="square"
-                title="คืนค่าเริ่มต้น"
-                aria-label="คืนค่าเริ่มต้น"
+                className="mc-inline-action"
                 onClick={() => set(defaults)}
               >
-                <RotateCcw size={15} />
+                <RotateCcw size={14} strokeWidth={1.7} />
+                <span>{t.resetBtn}</span>
               </button>
-            }
-          />
-          {controls.map((c) => (
-            <label className="slider-label" key={c.key}>
-              <span>
-                {c.label}
-                <b>
-                  {inputs[c.key].toLocaleString("th-TH")} {c.unit}
-                </b>
-              </span>
-              <input
-                type="range"
-                min={c.min}
-                max={c.max}
-                step={c.step}
-                value={inputs[c.key]}
-                onChange={(e) =>
-                  set({ ...inputs, [c.key]: Number(e.target.value) })
-                }
-              />
-            </label>
-          ))}
-          <label className="select-label">
-            แนวทางลงทุน
-            <select
-              value={inputs.approach}
-              onChange={(e) =>
-                set({
-                  ...inputs,
-                  approach: e.target.value as Inputs["approach"],
-                })
-              }
-            >
+            </div>
+            <p className="mc-side-note">{u.hint}</p>
+
+            {controls.map((ctl) => {
+              const pct =
+                ((inputs[ctl.key] - ctl.min) / (ctl.max - ctl.min)) * 100;
+              const id = "ctl-" + ctl.key;
+              return (
+                <div className="mc-slider" key={ctl.key}>
+                  <label htmlFor={id}>{labelOf[ctl.key]}</label>
+                  <output htmlFor={id}>{display(ctl.key)}</output>
+                  <input
+                    id={id}
+                    type="range"
+                    min={ctl.min}
+                    max={ctl.max}
+                    step={ctl.step}
+                    value={inputs[ctl.key]}
+                    style={{ "--pct": `${pct}%` } as React.CSSProperties}
+                    onChange={(e) =>
+                      set({ ...inputs, [ctl.key]: Number(e.target.value) })
+                    }
+                  />
+                </div>
+              );
+            })}
+
+            <fieldset className="mc-segmented">
+              <legend>{t.approachLabel}</legend>
               {approaches.map((a) => (
-                <option value={a} key={a}>
-                  {approachNames[a]}
-                </option>
+                <button
+                  type="button"
+                  key={a}
+                  aria-pressed={inputs.approach === a}
+                  className={inputs.approach === a ? "active" : ""}
+                  onClick={() => set({ ...inputs, approach: a })}
+                >
+                  {t.approaches[a]}
+                </button>
               ))}
-            </select>
-          </label>
-        </section>
+            </fieldset>
+          </aside>
 
-        <section className="panel">
-          <PanelHead title="Portfolio Simulation" />
-          <div className="sim-ribbon">
-            <div className="sim-values">
-              <div>
-                <small>เงินต้นทั้งหมด</small>
-                <strong>฿{money.format(result.contribution)}</strong>
-              </div>
-              <div>
-                <small>มูลค่าปลายงวดมัธยฐาน</small>
-                <strong className="lime-text">
-                  ฿{money.format(result.median)}
-                </strong>
-              </div>
+          {/* Visualization */}
+          <div className="mc-lab-main">
+            <div className="mc-lab-figure">
+              <span className="mc-muted-label">{t.estValueLabel}</span>
+              <div className="mc-big-number">{baht(result.median)}</div>
+              <p className="mc-side-note">{t.medianNote}</p>
             </div>
-            <div className="sim-tail-kpi">
-              <div>
-                <small>P5 ขาลง (5th Pct)</small>
-                <strong>฿{money.format(result.downside)}</strong>
-              </div>
-              <div>
-                <small>ต่ำกว่าเงินต้น</small>
-                <strong className={result.below >= 30 ? "crimson-text" : ""}>
-                  {result.below}%
-                </strong>
-              </div>
-            </div>
-          </div>
 
-          <div className="chart tall">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={result.paths}
-                margin={{ left: 0, right: 8, top: 8, bottom: 0 }}
-              >
-                <CartesianGrid
-                  stroke={chartGrid}
-                  strokeDasharray="3 6"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="month"
-                  tick={axis}
-                  minTickGap={35}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={axis}
-                  tickFormatter={compact}
-                  width={45}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  contentStyle={tipStyle}
-                  labelFormatter={(n) => "เดือน " + n}
-                  formatter={(n) => "฿" + money.format(Number(n))}
-                />
-                {displayedPaths.map((path) => (
+            <figure className="mc-chart" role="img" aria-label={u.chartAria(baht(result.median), baht(result.contribution))}>
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart
+                  data={bands}
+                  margin={{ top: 10, right: 8, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid stroke={chartGrid} vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    type="number"
+                    domain={[0, yearsTotal * 12]}
+                    ticks={ticks}
+                    tickFormatter={(m: number) => (m === 0 ? "0" : u.yearTick(m / 12))}
+                    tick={{ fill: axisColor, fontSize: 12 }}
+                    axisLine={{ stroke: chartGrid }}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: axisColor, fontSize: 12 }}
+                    tickFormatter={compact}
+                    width={48}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={tipStyle}
+                    labelFormatter={(m) => u.month(Number(m))}
+                    formatter={(v, name) =>
+                      Array.isArray(v)
+                        ? [`${baht(v[0] as number)} – ${baht(v[1] as number)}`, name]
+                        : [baht(Number(v)), name]
+                    }
+                  />
+                  <Area
+                    dataKey="band"
+                    name={u.range}
+                    stroke="none"
+                    fill="#E86B20"
+                    fillOpacity={0.16}
+                    isAnimationActive={false}
+                  />
                   <Line
-                    key={path.key}
-                    dataKey={path.key}
-                    name={path.label}
-                    stroke={path.color}
-                    strokeOpacity={0.75}
-                    strokeWidth={1.65}
+                    dataKey="contribution"
+                    name={u.contrib}
+                    stroke="#666666"
+                    strokeWidth={1.75}
+                    strokeDasharray="5 4"
                     dot={false}
                     isAnimationActive={false}
                   />
-                ))}
-                <Line
-                  dataKey="contribution"
-                  stroke="#0B121A"
-                  strokeWidth={2.2}
-                  name="เงินต้น"
-                  dot={false}
-                  strokeDasharray="5 5"
-                  isAnimationActive={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <p className="chart-caption">
-            <span>Seed 42 · เดือนที่ลงทุน · แสดง 8 จาก 240 เส้นทาง</span>
-            <span>เส้นประสีเข้มคือเงินต้นสะสม</span>
-          </p>
-        </section>
-      </div>
+                  <Line
+                    dataKey="median"
+                    name={u.median}
+                    stroke="#E86B20"
+                    strokeWidth={3}
+                    dot={false}
+                    activeDot={{ r: 5, fill: "#E86B20", stroke: "#fff", strokeWidth: 2 }}
+                    isAnimationActive={false}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </figure>
 
-      <div className="split equal">
-        <section className="panel">
-          <PanelHead title="การกระจายมูลค่าปลายงวด" />
-          <div className="chart">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={result.histogram}>
-                <XAxis
-                  dataKey="value"
-                  tick={axis}
-                  tickFormatter={compact}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  width={30}
-                  tick={axis}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  contentStyle={tipStyle}
-                  cursor={{ fill: chartHover }}
-                  labelFormatter={(v) =>
-                    "มูลค่าเริ่มช่วง ฿" + money.format(Number(v))
-                  }
-                />
-                <Bar
-                  name="จำนวนเส้นทาง"
-                  dataKey="count"
-                  radius={[5, 5, 0, 0]}
-                  isAnimationActive={false}
-                >
-                  {result.histogram.map((bin, idx) => (
-                    <Cell
-                      key={idx}
-                      fill={
-                        bin.value < result.contribution ? "#E11D48" : "#0D9488"
-                      }
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <p className="body-text">
-            เปอร์เซ็นไทล์ที่ 5 อยู่ที่ ฿{money.format(result.downside)} และ{" "}
-            {result.below}% ของเส้นทางจบต่ำกว่าเงินต้น (แท่งสีแดงแสดงช่วงต่ำกว่าเงินต้น)
-          </p>
-        </section>
+            <p className="mc-legend mc-legend-chart">
+              <span>
+                <i className="mc-key line" /> {t.legendMedian}
+              </span>
+              <span>
+                <i className="mc-key band" /> {t.legendRange}
+              </span>
+              <span>
+                <i className="mc-key dash" /> {t.legendContrib}
+              </span>
+            </p>
 
-        <section className="panel">
-          <PanelHead title="เปรียบเทียบแนวทาง" />
-          <div className="chart">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={result.comparison} layout="vertical">
-                <XAxis
-                  type="number"
-                  tick={axis}
-                  tickFormatter={compact}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  width={122}
-                  tick={{
-                    fill: axisColor,
-                    fontSize: 12,
-                    fontFamily: '"Inter", "IBM Plex Sans Thai", sans-serif',
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  contentStyle={tipStyle}
-                  cursor={{ fill: chartHover }}
-                  formatter={(v) => "฿" + money.format(Number(v))}
-                />
-                <Bar
-                  dataKey="value"
-                  name="มัธยฐาน"
-                  radius={[0, 6, 6, 0]}
-                  isAnimationActive={false}
-                >
-                  {approaches.map((a) => (
-                    <Cell
-                      key={a}
-                      fill={a === inputs.approach ? "#1D4ED8" : "#94A3B8"}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <dl className="mc-kpis">
+              <div>
+                <dt>{t.totalContribLabel}</dt>
+                <dd>{baht(result.contribution)}</dd>
+              </div>
+              <div>
+                <dt>{t.estGainLabel}</dt>
+                <dd className={gain >= 0 ? "mc-tone-up" : "mc-tone-high"}>
+                  {gain >= 0 ? "+" : "−"}
+                  {baht(Math.abs(gain))}
+                </dd>
+              </div>
+              <div>
+                <dt>{t.downsideLabel}</dt>
+                <dd>{baht(result.downside)}</dd>
+              </div>
+              <div>
+                <dt>{u.rangeAtEnd}</dt>
+                <dd className="mc-kpi-sm">
+                  {baht(bands[bands.length - 1].p10)} – {baht(bands[bands.length - 1].p90)}
+                </dd>
+              </div>
+            </dl>
+            <p className="mc-fineprint">{t.belowPrincipal(result.below)}</p>
           </div>
-          <p className="chart-caption">
-            <span>ค่ามัธยฐานจากเส้นทางตลาดชุดเดียวกันและเงินต้นเท่ากัน</span>
-            <span>ACTIVE HIGHLIGHTED</span>
-          </p>
-        </section>
-      </div>
-
-      <section className="panel">
-        <Disclosure title="สมมติฐานและวิธีอ่านผล" initial>
-          <p>
-            ใช้ผลตอบแทนรายเดือนแบบ lognormal และสุ่มซ้ำด้วย seed 42
-            ผลตอบแทนและความผันผวนคงที่ตลอดช่วง ไม่มีค่าธรรมเนียม ภาษี หรือเงินเฟ้อ
-            เงินสดไม่ให้ดอกเบี้ย
-          </p>
-          <p>
-            แบบสม่ำเสมอลงทุนต้นเดือน แบบก้อนเดียวมีเงินต้นทั้งหมดตั้งแต่วันแรก
-            แบบจับจังหวะพักเงินสดหลังเดือนติดลบและลงทุนเงินที่สะสมเมื่อเดือนก่อนหน้าไม่ติดลบ
-            เดือนแรกลงทุนทันที
-          </p>
-          <p>
-            ช่วงปลายซ้ายของการกระจายแสดงผลลัพธ์ที่ต่ำในชุดจำลอง
-            ตลาดจริงอาจเกิดเหตุการณ์รุนแรงกว่าที่แบบจำลองสร้างได้
-          </p>
-        </Disclosure>
+        </div>
       </section>
-    </>
+
+      {/* Distribution + approach comparison */}
+      <section className="mc-band mc-band-warm">
+        <div className="mc-container mc-split-even">
+          <div>
+            <h2 className="mc-h2">{u.distTitle}</h2>
+            <p className="mc-side-note">{u.distSub}</p>
+            <div className="mc-chart mc-chart-sm" role="img" aria-label={u.distTitle}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={result.histogram} margin={{ top: 8, right: 4, left: -12, bottom: 0 }}>
+                  <XAxis
+                    dataKey="value"
+                    tickFormatter={compact}
+                    tick={{ fill: axisColor, fontSize: 12 }}
+                    axisLine={{ stroke: chartGrid }}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: axisColor, fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    contentStyle={tipStyle}
+                    cursor={{ fill: chartHover }}
+                    labelFormatter={(v) => baht(Number(v))}
+                    formatter={(v) => [v, u.paths]}
+                  />
+                  <Bar dataKey="count" radius={[3, 3, 0, 0]} isAnimationActive={false}>
+                    {result.histogram.map((bin, i) => (
+                      <Cell
+                        key={i}
+                        fill={bin.value < result.contribution ? "#C84630" : "#E86B20"}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="mc-legend">
+              <span>
+                <i className="mc-dot below" /> {u.belowLegend}
+              </span>
+              <span>
+                <i className="mc-dot above" /> {u.aboveLegend}
+              </span>
+            </p>
+          </div>
+
+          <div>
+            <h2 className="mc-h2">{t.compareRailTitle}</h2>
+            <p className="mc-side-note">{t.compareRailSub}</p>
+            <ul className="mc-compare">
+              {result.comparison.map((row, i) => {
+                const key = approaches[i];
+                const active = key === inputs.approach;
+                return (
+                  <li key={key} className={active ? "active" : ""}>
+                    <div className="mc-compare-top">
+                      <span>{t.approaches[key]}</span>
+                      <b>{baht(row.value)}</b>
+                    </div>
+                    <div className="mc-track" aria-hidden="true">
+                      <i style={{ width: `${(row.value / maxComparison) * 100}%` }} />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section className="mc-band mc-band-white">
+        <div className="mc-container mc-split">
+          <div className="mc-sticky-side">
+            <h2 className="mc-h2">{t.methodologyRailTitle}</h2>
+            <p className="mc-side-note">{t.methodologyRailSub}</p>
+          </div>
+          <div>
+            <Disclosure title={<span className="mc-finding-quote">{t.methodologyRailTitle}</span>} initial>
+              <p className="mc-prose">{t.methodologyP1}</p>
+              <p className="mc-prose">{t.methodologyP2}</p>
+            </Disclosure>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
