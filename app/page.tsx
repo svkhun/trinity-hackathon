@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Check, LockKeyhole, Menu, X } from "lucide-react";
-import { navItems, RiskSummary, type View } from "@/components/shared";
+import { navItems, type View } from "@/components/shared";
 import { OverviewPrototype } from "@/components/reading-desk";
-import { Composer, Findings } from "@/components/fact-check";
+import { FactCheckPage } from "@/components/fact-check";
 import { copy, type Locale } from "@/lib/i18n";
 
 const Analytics = dynamic(() =>
@@ -145,23 +145,6 @@ export default function Page() {
     }
   }
 
-  const editor = (
-    <Composer
-      draft={draft}
-      setDraft={(v) => {
-        setDraft(v);
-        setError("");
-      }}
-      analyze={analyze}
-      busy={busy}
-      error={error}
-    />
-  );
-
-  const summary = (
-    <RiskSummary report={report} onOpen={() => go("ai-analysis")} />
-  );
-
   return (
     <div className="mc-shell">
       <button
@@ -294,6 +277,24 @@ export default function Page() {
             }}
             onOpenScore={() => go("ai-analysis")}
           />
+        ) : view === "fact-check" ? (
+          <FactCheckPage
+            locale={locale}
+            draft={draft}
+            setDraft={(v) => {
+              setDraft(v);
+              setError("");
+            }}
+            report={report}
+            busy={busy}
+            error={error}
+            analyze={analyze}
+            targetPhrase={targetPhrase}
+            go={go}
+            notify={setToast}
+          />
+        ) : view === "ai-analysis" ? (
+          <Analytics locale={locale} report={report} go={go} />
         ) : (
           /* Remaining pages preserved untouched during Phase 2 prototype review */
           <div className="legacy-subpage-wrap">
@@ -305,30 +306,7 @@ export default function Page() {
                 </div>
               </header>
 
-              {view === "fact-check" ? (
-                <>
-                  <div className="prism-workbench">
-                    {editor}
-                    {summary}
-                  </div>
-                  <div id="analysis-result" tabIndex={-1}>
-                    {busy ? (
-                      <div role="status" className="panel skeleton">
-                        กำลังวิเคราะห์ข้อความ…
-                      </div>
-                    ) : (
-                      <Findings
-                        targetPhrase={targetPhrase}
-                        report={report}
-                        go={go}
-                        notify={setToast}
-                      />
-                    )}
-                  </div>
-                </>
-              ) : view === "ai-analysis" ? (
-                <Analytics report={report} go={go} />
-              ) : view === "sources" ? (
+              {view === "sources" ? (
                 <Sources report={report} go={go} />
               ) : (
                 <RiskLab />

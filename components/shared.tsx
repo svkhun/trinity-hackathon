@@ -31,3 +31,34 @@ export function Disclosure({
     </details>
   );
 }
+
+export function Status({
+  children,
+  color = "purple",
+}: {
+  children: React.ReactNode;
+  color?: string;
+}) {
+  return (
+    <span className={"status " + color}>
+      <i />
+      {children}
+    </span>
+  );
+}
+
+export function PanelHead({
+  title,
+  action,
+}: {
+  title: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <header className="panel-head">
+      <h2>{title}</h2>
+      {action}
+    </header>
+  );
+}
+
