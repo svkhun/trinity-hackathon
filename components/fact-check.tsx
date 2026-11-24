@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import {
-  ArrowRight,
+  Activity,
   BookOpen,
   ClipboardCopy,
   Link2,
   LoaderCircle,
   LockKeyhole,
+  ScanText,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Disclosure, PanelHead, Status, type Go } from "./shared";
@@ -30,8 +31,8 @@ export function Composer({
     <section className="panel composer">
       <header className="composer-head">
         <div>
-          <span className="folio">Fact Check</span>
-          <h2>ต้นฉบับที่ต้องการตรวจ</h2>
+          <span className="folio">เริ่มจากสิ่งที่คุณอ่าน</span>
+          <h2>โพสต์นี้ บอกอะไรเราบ้าง?</h2>
         </div>
         <label className="case-select">
           <span>เลือกกรณีศึกษา</span>
@@ -84,12 +85,11 @@ export function Composer({
         )}
         <div className="form-footer">
           <span className="privacy">
-            <LockKeyhole size={13} /> ประมวลผลบนอุปกรณ์
+            <LockKeyhole size={15} /> ประมวลผลบนอุปกรณ์
           </span>
           <Button disabled={busy} type="submit">
-            {busy && <LoaderCircle className="spin" size={16} />}{" "}
+            {busy ? <LoaderCircle className="spin" size={17} /> : <ScanText size={17} />}{" "}
             {busy ? "กำลังเทียบถ้อยคำ…" : "ตรวจโพสต์นี้"}
-            <ArrowRight size={15} />
           </Button>
         </div>
       </form>
@@ -237,7 +237,7 @@ export function Findings({
           <Link2 size={15} /> สำรวจแหล่งข้อมูล
         </Button>
         <Button onClick={() => go("ai-analysis")}>
-          ดู AI Signals <ArrowRight size={15} />
+          <Activity size={16} /> ดู AI Signals
         </Button>
       </div>
     </section>

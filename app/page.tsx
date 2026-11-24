@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { BookOpen, Check, LockKeyhole, X } from "lucide-react";
+import { BookOpen, Check, FlaskConical, LockKeyhole, X } from "lucide-react";
 import { Brand, navItems, RiskSummary, type View } from "@/components/shared";
 import { Lead, ReportIndex } from "@/components/reading-desk";
 import { Composer, Findings } from "@/components/fact-check";
@@ -103,6 +103,7 @@ export default function Page() {
   const summary = (
     <RiskSummary report={report} onOpen={() => go("ai-analysis")} />
   );
+  const activeName = navItems.find((item) => item.id === view)?.name;
   return (
     <div className="shell">
       <button
@@ -115,7 +116,7 @@ export default function Page() {
       >
         ข้ามไปเนื้อหา
       </button>
-      <header className="masthead">
+      <aside className="masthead" aria-label="พื้นที่นำทาง">
         <div className="mast-inner">
           <a
             className="brand-link"
@@ -124,31 +125,62 @@ export default function Page() {
           >
             <Brand />
           </a>
+          <p className="nav-caption">WORKSPACE</p>
           <nav aria-label="เมนูหลัก" className="desk-nav">
-            {navItems.map(({ id, name }) => (
+            {navItems.map(({ id, name, icon: Icon }) => (
               <a
                 key={id}
                 href={"#" + id}
                 aria-current={view === id ? "page" : undefined}
               >
+                <Icon size={19} strokeWidth={1.7} />
                 {name}
               </a>
             ))}
           </nav>
+          <div className="sidebar-note">
+            <span className="note-icon">
+              <FlaskConical size={20} />
+            </span>
+            <strong>พื้นที่ทดลอง ก่อนลงทุนจริง</strong>
+            <p>ค่อย ๆ อ่าน ตั้งคำถาม และเรียนรู้จากข้อมูลจำลอง</p>
+          </div>
           <button
             type="button"
             className="guide-link"
             onClick={() => setGuide(true)}
           >
-            <BookOpen size={17} /> คู่มือ
+            <BookOpen size={18} /> คู่มือการใช้งาน
           </button>
         </div>
-      </header>
+      </aside>
       <div className="workarea">
+        <header className="workspace-header">
+          <div className="breadcrumb">
+            <span>Workspace</span>
+            <span aria-hidden="true">/</span>
+            <strong>{activeName}</strong>
+          </div>
+          <a className="mobile-brand" href="#overview" aria-label="HypeCheck AI Overview">
+            <Brand />
+          </a>
+          <span className="demo-label">
+            <FlaskConical size={15} /> Learning demo
+          </span>
+          <button
+            type="button"
+            className="mobile-guide square"
+            aria-label="คู่มือการใช้งาน"
+            onClick={() => setGuide(true)}
+          >
+            <BookOpen size={18} />
+          </button>
+        </header>
         <main id="main" tabIndex={-1}>
           <div className="page" key={view}>
             {view !== "overview" && (
               <header className="page-heading">
+                <span className="folio">HYPECHECK WORKSPACE</span>
                 <h1>{titles[view][0]}</h1>
                 <p>{titles[view][1]}</p>
               </header>
@@ -203,8 +235,8 @@ export default function Page() {
               <RiskLab />
             )}
             <footer>
-              <span>HypeCheck AI</span> ข้อมูลจำลองเพื่อการเรียนรู้ ·
-              ไม่มีคำแนะนำซื้อขายหลักทรัพย์
+              <span>Think before you invest.</span>
+              <p>ข้อมูลจำลองเพื่อการเรียนรู้ · ไม่มีคำแนะนำซื้อขายหลักทรัพย์</p>
             </footer>
           </div>
         </main>

@@ -1,7 +1,7 @@
 "use client";
 import {
   Activity,
-  ArrowUpRight,
+  BookOpen,
   FlaskConical,
   LayoutDashboard,
   ScanText,
@@ -23,10 +23,10 @@ export function Brand() {
   return (
     <span className="brand">
       <svg aria-hidden="true" width="34" height="34" viewBox="0 0 34 34">
-        <rect width="34" height="34" rx="3" fill="currentColor" />
+        <rect width="34" height="34" rx="10" fill="currentColor" />
         <g
           fill="none"
-          stroke="#fffaf1"
+          stroke="#ffffff"
           strokeWidth="2.2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -57,16 +57,6 @@ export function Ring({
   return (
     <div className={"score-gauge " + (small ? "small" : "")} style={{ color }}>
       <svg viewBox="0 0 112 112" aria-hidden="true">
-        <circle
-          cx="56"
-          cy="56"
-          r="54"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.7"
-          strokeDasharray="1 4"
-          opacity=".45"
-        />
         <circle
           cx="56"
           cy="56"
@@ -176,7 +166,7 @@ export function RiskSummary({
         ))}
       </div>
       <button type="button" className="score-link" onClick={onOpen}>
-        ดูวิธีอ่านคะแนน <ArrowUpRight size={16} />
+        <BookOpen size={16} /> ดูวิธีอ่านคะแนน
       </button>
     </section>
   );

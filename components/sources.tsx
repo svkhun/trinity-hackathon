@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { FlaskConical } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -15,7 +15,7 @@ import {
 import { profiles, type SourceId } from "@/lib/data";
 import type { Report } from "@/lib/analysis";
 import { PanelHead, Status, type Go } from "./shared";
-import { tipStyle, axisColor } from "./chart-style";
+import { tipStyle, axisColor, chartHover } from "./chart-style";
 import { Button } from "./ui/button";
 export function Sources({ report, go }: { report: Report; go: Go }) {
   const [id, set] = useState<SourceId>(report.source ?? "anon");
@@ -81,12 +81,12 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
                     startAngle={90}
                     endAngle={-270}
                   >
-                    <Cell fill="#577043" />
-                    <Cell fill="#c8c8b8" />
+                    <Cell fill="#438b83" />
+                    <Cell fill="#e9ebf3" />
                   </Pie>
                   <Tooltip
                     contentStyle={tipStyle}
-                    itemStyle={{ color: "#242720" }}
+                    itemStyle={{ color: "#25293e" }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -107,15 +107,16 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
               <BarChart
                 data={p.bars.map((v, i) => ({ week: "W" + (i + 1), posts: v }))}
               >
-                <XAxis dataKey="week" stroke={axisColor} fontSize={11} />
-                <YAxis width={25} stroke={axisColor} fontSize={11} />
-                <Tooltip contentStyle={tipStyle} cursor={{ fill: "#e8e7d9" }} />
+                <XAxis dataKey="week" tick={{ fill: axisColor, fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis width={25} tick={{ fill: axisColor, fontSize: 12 }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={tipStyle} cursor={{ fill: chartHover }} />
                 <Bar
                   isAnimationActive={false}
                   name="โพสต์สมมติ"
                   dataKey="posts"
-                  fill="#586f47"
-                  radius={[4, 4, 0, 0]}
+                  fill="#918bc8"
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={42}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -135,7 +136,7 @@ export function Sources({ report, go }: { report: Report; go: Go }) {
         </ol>
         <div className="section-actions">
           <Button onClick={() => go("risklab")}>
-            เปิด RiskLab <ArrowRight size={15} />
+            <FlaskConical size={16} /> เปิด RiskLab
           </Button>
         </div>
       </section>

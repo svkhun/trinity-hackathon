@@ -1,5 +1,5 @@
 "use client";
-import { ArrowRight } from "lucide-react";
+import { Waypoints } from "lucide-react";
 import {
   RadarChart,
   Radar,
@@ -11,7 +11,7 @@ import {
 import { Button } from "./ui/button";
 import { Disclosure, PanelHead, Ring, type Go } from "./shared";
 import type { Report } from "@/lib/analysis";
-import { axisColor, tipStyle } from "./chart-style";
+import { axisColor, chartGrid, tipStyle } from "./chart-style";
 const labels = ["FOMO", "Urgency", "Claims", "Emotion", "Consistency"];
 
 export function Analytics({ report, go }: { report: Report; go: Go }) {
@@ -49,10 +49,10 @@ export function Analytics({ report, go }: { report: Report; go: Go }) {
           <div className="chart tall">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={data} outerRadius="70%">
-                <PolarGrid stroke="#bbbba8" />
+                <PolarGrid stroke={chartGrid} />
                 <PolarAngleAxis
                   dataKey="axis"
-                  tick={{ fill: axisColor, fontSize: 11 }}
+                  tick={{ fill: axisColor, fontSize: 12 }}
                 />
                 <Radar
                   isAnimationActive={false}
@@ -65,9 +65,10 @@ export function Analytics({ report, go }: { report: Report; go: Go }) {
                   isAnimationActive={false}
                   name="คะแนนจำลอง"
                   dataKey="score"
-                  stroke="#8d3020"
-                  fill="#b9704c"
-                  fillOpacity={0.38}
+                  stroke="#7771be"
+                  fill="#aaa3df"
+                  fillOpacity={0.28}
+                  strokeWidth={2}
                 />
                 <Tooltip contentStyle={tipStyle} />
               </RadarChart>
@@ -112,7 +113,7 @@ export function Analytics({ report, go }: { report: Report; go: Go }) {
         </Disclosure>
         <div className="section-actions">
           <Button onClick={() => go("sources")}>
-            ตรวจ Source Intelligence <ArrowRight size={15} />
+            <Waypoints size={16} /> ตรวจ Source Intelligence
           </Button>
         </div>
       </section>

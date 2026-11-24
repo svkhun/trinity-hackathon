@@ -22,9 +22,9 @@ import {
 } from "@/lib/simulation";
 
 import { Disclosure, PanelHead } from "./shared";
-import { tipStyle, axisColor, chartColors } from "./chart-style";
+import { tipStyle, axisColor, chartColors, chartGrid, chartHover } from "./chart-style";
 const money = new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 });
-const axis = { fill: axisColor, fontSize: 11 };
+const axis = { fill: axisColor, fontSize: 12 };
 const displayedPaths = Array.from({ length: 8 }, (_, i) => ({
   key: "p" + i,
   label: "เส้นทาง " + (i + 1),
@@ -65,8 +65,7 @@ export function RiskLab() {
   return (
     <>
       <div className="notice">
-        Illustrative simulation only. Not a prediction or investment
-        recommendation.
+        ทดลองปรับสมมติฐานและสำรวจผลลัพธ์ที่เป็นไปได้ · ข้อมูลจำลองเพื่อการเรียนรู้ ไม่ใช่การคาดการณ์หรือคำแนะนำการลงทุน
       </div>
       <div className="split lab-grid">
         <section className="panel lab-controls">
@@ -78,6 +77,7 @@ export function RiskLab() {
                 type="button"
                 className="square"
                 title="คืนค่าเริ่มต้น"
+                aria-label="คืนค่าเริ่มต้น"
                 onClick={() => set(defaults)}
               >
                 <RotateCcw size={15} />
@@ -143,9 +143,9 @@ export function RiskLab() {
                 data={result.paths}
                 margin={{ left: 0, right: 8, top: 8, bottom: 0 }}
               >
-                <CartesianGrid stroke="#d0d0bf" strokeDasharray="3 6" />
-                <XAxis dataKey="month" tick={axis} minTickGap={35} />
-                <YAxis tick={axis} tickFormatter={compact} width={45} />
+                <CartesianGrid stroke={chartGrid} strokeDasharray="3 6" vertical={false} />
+                <XAxis dataKey="month" tick={axis} minTickGap={35} axisLine={false} tickLine={false} />
+                <YAxis tick={axis} tickFormatter={compact} width={45} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={tipStyle}
                   labelFormatter={(n) => "เดือน " + n}
@@ -164,7 +164,7 @@ export function RiskLab() {
                 ))}
                 <Line
                   dataKey="contribution"
-                  stroke="#232720"
+                  stroke="#424862"
                   name="เงินต้น"
                   dot={false}
                   strokeDasharray="4 5"
@@ -184,11 +184,11 @@ export function RiskLab() {
           <div className="chart">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={result.histogram}>
-                <XAxis dataKey="value" tick={axis} tickFormatter={compact} />
-                <YAxis width={30} tick={axis} />
+                <XAxis dataKey="value" tick={axis} tickFormatter={compact} axisLine={false} tickLine={false} />
+                <YAxis width={30} tick={axis} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={tipStyle}
-                  cursor={{ fill: "#e8e7d9" }}
+                  cursor={{ fill: chartHover }}
                   labelFormatter={(v) =>
                     "มูลค่าเริ่มช่วง ฿" + money.format(Number(v))
                   }
@@ -196,8 +196,8 @@ export function RiskLab() {
                 <Bar
                   name="จำนวนเส้นทาง"
                   dataKey="count"
-                  fill="#657a51"
-                  radius={[3, 3, 0, 0]}
+                  fill="#438b83"
+                  radius={[5, 5, 0, 0]}
                   isAnimationActive={false}
                 />
               </BarChart>
@@ -213,11 +213,11 @@ export function RiskLab() {
           <div className="chart">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={result.comparison} layout="vertical">
-                <XAxis type="number" tick={axis} tickFormatter={compact} />
-                <YAxis type="category" dataKey="name" width={110} tick={axis} />
+                <XAxis type="number" tick={axis} tickFormatter={compact} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="name" width={110} tick={axis} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={tipStyle}
-                  cursor={{ fill: "#e8e7d9" }}
+                  cursor={{ fill: chartHover }}
                   formatter={(v) => "฿" + money.format(Number(v))}
                 />
                 <Bar
@@ -227,7 +227,7 @@ export function RiskLab() {
                   isAnimationActive={false}
                 >
                   {approaches.map((a, i) => (
-                    <Cell key={a} fill={["#a28bf5", "#b7da79", "#e483ad"][i]} />
+                    <Cell key={a} fill={chartColors[i]} />
                   ))}
                 </Bar>
               </BarChart>

@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { Activity, BookOpen, ScanText, Search, Waypoints } from "lucide-react";
 import type { Report } from "@/lib/analysis";
 import { profiles, scenarios } from "@/lib/data";
 export function Lead({
@@ -23,23 +23,24 @@ export function Lead({
     <section className="lead">
       <div className="lead-type">
         <p className="edition">
-          <span /> สมุดตรวจโพสต์การลงทุน
+          <ScanText size={16} /> A LITTLE PAUSE. A CLEARER PICTURE.
         </p>
         <h1>
-          อ่านให้ทัน
+          ก่อนเชื่อ ลองเช็ก
           <br />
-          <em>คำชวนลงทุน</em>
+          <em>ให้ชัดอีกนิด</em>
         </h1>
         <p className="deck">
-          วางโพสต์ที่คุณสงสัย แล้วดูว่าคำไหนเร่งให้ซื้อ
-          <br className="wide-br" /> และข้อไหนยังต้องหาหลักฐาน
+          เข้าใจคำชวนลงทุน แยกถ้อยคำออกจากหลักฐาน
+          <br className="wide-br" /> เริ่มต้นด้วยโพสต์ที่คุณอยากรู้ให้มากขึ้น
         </p>
       </div>
       <div className="proof-wrap">
         <article className="proof">
           <header>
-            <span>ข้อความจากรายงานล่าสุด</span>
-            <span>{name}</span>
+            <span className="proof-icon"><Search size={18} /></span>
+            <div><span>มองให้ลึกกว่าข้อความ</span><small>ข้อความจากรายงานล่าสุด</small></div>
+            <span className="proof-tag">{name}</span>
           </header>
           <blockquote>
             “{prefix.length < before.length ? "…" : ""}
@@ -49,38 +50,31 @@ export function Lead({
             {suffix.length < after.length ? "…" : ""}”
           </blockquote>
           <button type="button" onClick={() => onRead(finding.phrase)}>
-            <span className="proof-mark" aria-hidden="true">
-              ↳
-            </span>{" "}
-            อ่านข้อสังเกตของคำนี้ <ArrowUpRight size={16} />
+            <BookOpen size={16} /> อ่านข้อสังเกตของคำนี้
           </button>
         </article>
+        <p className="proof-caption">คำที่สะดุดตา อาจเป็นจุดเริ่มต้นของคำถามที่ดี</p>
       </div>
     </section>
   );
 }
 export function ReportIndex({ report }: { report: Report }) {
   const entries = [
-    ["#fact-check", "ข้อสังเกตและหลักฐาน", report.findings.length + " ข้อสังเกต"],
-    ["#ai-analysis", "ถ้อยคำที่ระบบจับคู่", report.metrics.length + " ตัวชี้วัด"],
-    [
-      "#sources",
-      "ที่มาของโพสต์",
-      report.source ? profiles[report.source].name : "ยังไม่ทราบผู้เผยแพร่",
-    ],
+    { href: "#fact-check", title: "ข้อสังเกตและหลักฐาน", subtitle: report.findings.length + " ข้อสังเกตจากโพสต์", icon: ScanText, tone: "indigo" },
+    { href: "#ai-analysis", title: "เข้าใจสัญญาณภาษา", subtitle: report.metrics.length + " ตัวชี้วัดที่อธิบายได้", icon: Activity, tone: "peach" },
+    { href: "#sources", title: "รู้จักที่มาของโพสต์", subtitle: report.source ? profiles[report.source].name : "ยังไม่ทราบผู้เผยแพร่", icon: Waypoints, tone: "teal" },
   ];
   return (
     <section className="report-index">
-      <div>
-        <span className="folio">Report index</span>
-        <h2>เปิดรายงานทีละส่วน</h2>
+      <div className="report-index-heading">
+        <h2>ค่อย ๆ ทำความเข้าใจ ทีละมุม</h2>
+        <p>สำรวจเพิ่มเติมจากรายงานล่าสุด</p>
       </div>
-      <div>
-        {entries.map(([href, title, subtitle]) => (
+      <div className="report-cards">
+        {entries.map(({ href, title, subtitle, icon: Icon, tone }) => (
           <a href={href} key={href}>
-            <strong>{title}</strong>
-            <small>{subtitle}</small>
-            <ArrowRight size={17} />
+            <span className={"report-icon " + tone}><Icon size={21} strokeWidth={1.7} /></span>
+            <div><strong>{title}</strong><small>{subtitle}</small></div>
           </a>
         ))}
       </div>

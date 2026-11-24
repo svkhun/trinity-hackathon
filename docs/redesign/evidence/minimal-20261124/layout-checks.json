@@ -1,0 +1,92 @@
+[
+  {
+    "contentWidth": 305,
+    "overflow": false,
+    "route": "#overview",
+    "width": 320
+  },
+  {
+    "contentWidth": 305,
+    "overflow": false,
+    "route": "#fact-check",
+    "width": 320
+  },
+  {
+    "contentWidth": 305,
+    "overflow": false,
+    "route": "#ai-analysis",
+    "width": 320
+  },
+  {
+    "contentWidth": 305,
+    "overflow": false,
+    "route": "#sources",
+    "width": 320
+  },
+  {
+    "contentWidth": 305,
+    "overflow": false,
+    "route": "#risklab",
+    "width": 320
+  },
+  {
+    "contentWidth": 753,
+    "overflow": false,
+    "route": "#overview",
+    "width": 768
+  },
+  {
+    "contentWidth": 753,
+    "overflow": false,
+    "route": "#fact-check",
+    "width": 768
+  },
+  {
+    "contentWidth": 753,
+    "overflow": false,
+    "route": "#ai-analysis",
+    "width": 768
+  },
+  {
+    "contentWidth": 753,
+    "overflow": false,
+    "route": "#sources",
+    "width": 768
+  },
+  {
+    "contentWidth": 753,
+    "overflow": false,
+    "route": "#risklab",
+    "width": 768
+  },
+  {
+    "contentWidth": 1425,
+    "overflow": false,
+    "route": "#overview",
+    "width": 1440
+  },
+  {
+    "contentWidth": 1425,
+    "overflow": false,
+    "route": "#fact-check",
+    "width": 1440
+  },
+  {
+    "contentWidth": 1425,
+    "overflow": false,
+    "route": "#ai-analysis",
+    "width": 1440
+  },
+  {
+    "contentWidth": 1425,
+    "overflow": false,
+    "route": "#sources",
+    "width": 1440
+  },
+  {
+    "contentWidth": 1425,
+    "overflow": false,
+    "route": "#risklab",
+    "width": 1440
+  }
+]
