@@ -1,10 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { BookOpen, Check, FlaskConical, LockKeyhole, X } from "lucide-react";
-import { Brand, navItems, RiskSummary, type View } from "@/components/shared";
-import { Lead, ReportIndex } from "@/components/reading-desk";
+import { Check, LockKeyhole, Menu, X } from "lucide-react";
+import { navItems, RiskSummary, type View } from "@/components/shared";
+import { OverviewPrototype } from "@/components/reading-desk";
 import { Composer, Findings } from "@/components/fact-check";
+import { copy, type Locale } from "@/lib/i18n";
+
 const Analytics = dynamic(() =>
   import("@/components/analytics").then((m) => m.Analytics),
 );
@@ -14,53 +16,103 @@ const Sources = dynamic(() =>
 const RiskLab = dynamic(() =>
   import("@/components/risklab").then((m) => m.RiskLab),
 );
+
 import { analyzePost, mockAnalysisService, postSchema } from "@/lib/analysis";
 import { scenarios } from "@/lib/data";
+
 const titles: Record<Exclude<View, "overview">, [string, string]> = {
   "fact-check": ["Fact Check", "ตรวจสอบถ้อยคำและหลักฐานประกอบโพสต์การลงทุน"],
   "ai-analysis": ["AI Analysis", "สำรวจสัญญาณภาษาและเหตุผลเบื้องหลังคะแนนจำลอง"],
   sources: ["Source Intelligence", "สำรวจที่มาและความโปร่งใสของแหล่งข้อมูลตัวอย่าง"],
   risklab: ["RiskLab", "ทดลองเปลี่ยนสมมติฐานเพื่อเข้าใจความไม่แน่นอนของการลงทุน"],
 };
+
 function readView(): View {
   return (
     navItems.find((n) => "#" + n.id === window.location.hash)?.id ?? "overview"
   );
 }
+
+function BrandWordmark() {
+  return (
+    <span className="mc-brand">
+      <svg
+        aria-hidden="true"
+        width="26"
+        height="20"
+        viewBox="0 0 28 22"
+        fill="none"
+      >
+        <path
+          d="M2.5 18.5L9.5 4.5L15 15"
+          stroke="#E86B20"
+          strokeWidth="2.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M11.5 18.5L18.5 5.5L25.5 18.5"
+          stroke="#141414"
+          strokeWidth="2.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <span className="mc-wordmark">hypecheck.</span>
+    </span>
+  );
+}
+
 export default function Page() {
   const [view, setView] = useState<View>("overview"),
+    [locale, setLocale] = useState<Locale>("th"),
+    [mobileMenu, setMobileMenu] = useState(false),
     [draft, setDraft] = useState(scenarios[0].text),
     [report, setReport] = useState(() => analyzePost(scenarios[0].text)),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [toast, setToast] = useState(""),
     [guide, setGuide] = useState(false);
+
   const [targetPhrase, setTargetPhrase] = useState<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null),
     pending = useRef(false);
+
+  const t = copy[locale];
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+
   useEffect(() => {
     function sync() {
       setView(readView());
+      setMobileMenu(false);
       window.scrollTo(0, 0);
     }
     sync();
     window.addEventListener("hashchange", sync);
     return () => window.removeEventListener("hashchange", sync);
   }, []);
+
   useEffect(() => {
     if (!toast) return;
     const id = setTimeout(() => setToast(""), 3000);
     return () => clearTimeout(id);
   }, [toast]);
+
   useEffect(() => {
     if (guide) dialog.current?.showModal();
     else dialog.current?.close();
   }, [guide]);
+
   function go(next: View) {
     window.location.hash = next;
     setView(next);
+    setMobileMenu(false);
     window.scrollTo(0, 0);
   }
+
   async function analyze() {
     if (pending.current) return;
     const validation = postSchema.safeParse(draft);
@@ -77,17 +129,22 @@ export default function Page() {
       setReport(next);
       setTargetPhrase(null);
       go("fact-check");
-      setToast("วิเคราะห์โพสต์เสร็จแล้ว");
+      setToast(t.toastDone);
       requestAnimationFrame(() =>
         document.getElementById("analysis-result")?.focus(),
       );
     } catch {
-      setError("วิเคราะห์ไม่สำเร็จ กรุณาลองอีกครั้ง");
+      setError(
+        locale === "th"
+          ? "วิเคราะห์ไม่สำเร็จ กรุณาลองอีกครั้ง"
+          : "Unable to analyze text. Please try again.",
+      );
     } finally {
       setBusy(false);
       pending.current = false;
     }
   }
+
   const editor = (
     <Composer
       draft={draft}
@@ -100,12 +157,13 @@ export default function Page() {
       error={error}
     />
   );
+
   const summary = (
     <RiskSummary report={report} onOpen={() => go("ai-analysis")} />
   );
-  const activeName = navItems.find((item) => item.id === view)?.name;
+
   return (
-    <div className="shell">
+    <div className="mc-shell">
       <button
         type="button"
         className="skip-link"
@@ -114,146 +172,179 @@ export default function Page() {
           document.getElementById("main")?.focus();
         }}
       >
-        ข้ามไปเนื้อหา
+        {t.skip}
       </button>
-      <aside className="masthead" aria-label="พื้นที่นำทาง">
-        <div className="mast-inner">
+
+      {/* Clean, Flat Corporate Horizontal Header */}
+      <header className="mc-header">
+        <div className="mc-header-inner">
           <a
-            className="brand-link"
+            className="mc-brand-link"
             href="#overview"
-            aria-label="HypeCheck AI Overview"
+            aria-label="hypecheck. Overview"
           >
-            <Brand />
+            <BrandWordmark />
           </a>
-          <p className="nav-caption">WORKSPACE</p>
-          <nav aria-label="เมนูหลัก" className="desk-nav">
-            {navItems.map(({ id, name, icon: Icon }) => (
+
+          <div className="mc-header-right">
+            <nav aria-label="Primary navigation" className="mc-nav">
+              {navItems.map(({ id }) => (
+                <a
+                  key={id}
+                  href={"#" + id}
+                  aria-current={view === id ? "page" : undefined}
+                >
+                  {t.nav[id]}
+                </a>
+              ))}
+            </nav>
+
+            <span className="mc-divider-v" aria-hidden="true" />
+
+            <div
+              className="mc-lang-switch"
+              role="group"
+              aria-label="Language switcher"
+            >
+              <button
+                type="button"
+                className={locale === "th" ? "active" : ""}
+                aria-pressed={locale === "th"}
+                onClick={() => setLocale("th")}
+              >
+                ไทย
+              </button>
+              <span aria-hidden="true">/</span>
+              <button
+                type="button"
+                className={locale === "en" ? "active" : ""}
+                aria-pressed={locale === "en"}
+                onClick={() => setLocale("en")}
+              >
+                EN
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="mc-guide-btn"
+              onClick={() => setGuide(true)}
+            >
+              {t.guide}
+            </button>
+
+            <button
+              type="button"
+              className="mc-mobile-toggle"
+              aria-expanded={mobileMenu}
+              aria-label={mobileMenu ? t.menuClose : t.menuOpen}
+              onClick={() => setMobileMenu((v) => !v)}
+            >
+              {mobileMenu ? (
+                <X size={20} strokeWidth={1.6} />
+              ) : (
+                <Menu size={20} strokeWidth={1.6} />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {mobileMenu && (
+          <nav className="mc-mobile-drawer" aria-label="Mobile navigation">
+            {navItems.map(({ id }) => (
               <a
                 key={id}
                 href={"#" + id}
                 aria-current={view === id ? "page" : undefined}
+                onClick={() => setMobileMenu(false)}
               >
-                <Icon size={19} strokeWidth={1.7} />
-                {name}
+                {t.nav[id]}
               </a>
             ))}
+            <button
+              type="button"
+              className="mc-drawer-guide"
+              onClick={() => {
+                setMobileMenu(false);
+                setGuide(true);
+              }}
+            >
+              {t.guide}
+            </button>
           </nav>
-          <div className="sidebar-note">
-            <span className="note-icon">
-              <FlaskConical size={20} />
-            </span>
-            <strong>พื้นที่ทดลอง ก่อนลงทุนจริง</strong>
-            <p>ค่อย ๆ อ่าน ตั้งคำถาม และเรียนรู้จากข้อมูลจำลอง</p>
-          </div>
-          <button
-            type="button"
-            className="guide-link"
-            onClick={() => setGuide(true)}
-          >
-            <BookOpen size={18} /> คู่มือการใช้งาน
-          </button>
-        </div>
-      </aside>
-      <div className="workarea">
-        <header className="workspace-header">
-          <div className="breadcrumb">
-            <span>Workspace</span>
-            <span aria-hidden="true">/</span>
-            <strong>{activeName}</strong>
-          </div>
-          <a className="mobile-brand" href="#overview" aria-label="HypeCheck AI Overview">
-            <Brand />
-          </a>
-          <span className="demo-label">
-            <FlaskConical size={15} /> Learning demo
-          </span>
-          <button
-            type="button"
-            className="mobile-guide square"
-            aria-label="คู่มือการใช้งาน"
-            onClick={() => setGuide(true)}
-          >
-            <BookOpen size={18} />
-          </button>
-        </header>
-        <main id="main" tabIndex={-1}>
-          <div className="page" key={view}>
-            {view !== "overview" && (
+        )}
+      </header>
+
+      <main id="main" tabIndex={-1} className="mc-main">
+        {view === "overview" ? (
+          <OverviewPrototype
+            locale={locale}
+            draft={draft}
+            setDraft={(v) => {
+              setDraft(v);
+              setError("");
+            }}
+            report={report}
+            busy={busy}
+            error={error}
+            analyze={analyze}
+            onInspectPhrase={(phrase) => {
+              setTargetPhrase(phrase);
+              go("fact-check");
+            }}
+            onOpenScore={() => go("ai-analysis")}
+          />
+        ) : (
+          /* Remaining pages preserved untouched during Phase 2 prototype review */
+          <div className="legacy-subpage-wrap">
+            <div className="page" key={view}>
               <header className="page-heading">
-                <span className="folio">HYPECHECK WORKSPACE</span>
-                <h1>{titles[view][0]}</h1>
-                <p>{titles[view][1]}</p>
+                <div>
+                  <h1>{titles[view][0]}</h1>
+                  <p>{titles[view][1]}</p>
+                </div>
               </header>
-            )}
-            {view === "overview" ? (
-              <>
-                <Lead
-                  report={report}
-                  onRead={(phrase) => {
-                    setTargetPhrase(phrase);
-                    go("fact-check");
-                  }}
-                />
-                <div className="split overview-grid">
-                  {editor}
-                  {busy ? (
-                    <div role="status" className="panel skeleton">
-                      กำลังวิเคราะห์สัญญาณ…
-                    </div>
-                  ) : (
-                    summary
-                  )}
-                </div>
-                <ReportIndex report={report} />
-              </>
-            ) : view === "fact-check" ? (
-              <>
-                <div className="split overview-grid">
-                  {editor}
-                  {summary}
-                </div>
-                <div id="analysis-result" tabIndex={-1}>
-                  {busy ? (
-                    <div role="status" className="panel skeleton">
-                      กำลังวิเคราะห์ข้อความ…
-                    </div>
-                  ) : (
-                    <Findings
-                      targetPhrase={targetPhrase}
-                      report={report}
-                      go={go}
-                      notify={setToast}
-                    />
-                  )}
-                </div>
-              </>
-            ) : view === "ai-analysis" ? (
-              <Analytics report={report} go={go} />
-            ) : view === "sources" ? (
-              <Sources report={report} go={go} />
-            ) : (
-              <RiskLab />
-            )}
-            <footer>
-              <span>Think before you invest.</span>
-              <p>ข้อมูลจำลองเพื่อการเรียนรู้ · ไม่มีคำแนะนำซื้อขายหลักทรัพย์</p>
-            </footer>
+
+              {view === "fact-check" ? (
+                <>
+                  <div className="prism-workbench">
+                    {editor}
+                    {summary}
+                  </div>
+                  <div id="analysis-result" tabIndex={-1}>
+                    {busy ? (
+                      <div role="status" className="panel skeleton">
+                        กำลังวิเคราะห์ข้อความ…
+                      </div>
+                    ) : (
+                      <Findings
+                        targetPhrase={targetPhrase}
+                        report={report}
+                        go={go}
+                        notify={setToast}
+                      />
+                    )}
+                  </div>
+                </>
+              ) : view === "ai-analysis" ? (
+                <Analytics report={report} go={go} />
+              ) : view === "sources" ? (
+                <Sources report={report} go={go} />
+              ) : (
+                <RiskLab />
+              )}
+            </div>
           </div>
-        </main>
-      </div>
-      <nav className="mobile-nav" aria-label="เมนูมือถือ">
-        {navItems.map(({ id, name, icon: Icon }) => (
-          <a
-            key={id}
-            aria-current={view === id ? "page" : undefined}
-            href={"#" + id}
-            className={view === id ? "active" : ""}
-          >
-            <Icon size={19} />
-            <small>{id === "sources" ? "Sources" : name}</small>
-          </a>
-        ))}
-      </nav>
+        )}
+      </main>
+
+      <footer className="mc-footer">
+        <div className="mc-container mc-footer-inner">
+          <span className="mc-footer-brand">{t.footerLead}</span>
+          <p>{t.footerNote}</p>
+        </div>
+      </footer>
+
       <dialog
         ref={dialog}
         className="guide-dialog"
@@ -264,31 +355,28 @@ export default function Page() {
       >
         <div>
           <div className="dialog-head">
-            <h2 id="guide-title">คู่มือ HypeCheck AI</h2>
+            <h2 id="guide-title">{t.guideTitle}</h2>
             <button
               type="button"
               className="square"
-              aria-label="ปิดคู่มือ"
+              aria-label="Close"
               onClick={() => setGuide(false)}
             >
               <X size={17} />
             </button>
           </div>
           <ol>
-            <li>เลือกตัวอย่างหรือวางโพสต์ใน Fact Check แล้วกด “ตรวจโพสต์นี้”</li>
-            <li>เปิดข้อสังเกตและหลักฐาน ดูสัญญาณภาษาใน AI Analysis</li>
-            <li>
-              สำรวจโปรไฟล์สมมติใน Source Intelligence และเปลี่ยนสมมติฐานใน RiskLab
-            </li>
+            {t.guideSteps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
           </ol>
           <p>
-            <LockKeyhole size={16} />{" "}
-            ข้อความใช้ในหน่วยความจำของเบราว์เซอร์และหายเมื่อโหลดหน้าใหม่
-            เครื่องมือใช้กฎที่อธิบายได้ ไม่มีการส่งโพสต์ไปยังบริการ AI ภายนอก
+            <LockKeyhole size={15} /> {t.guidePrivacy}
           </p>
-          <p>คะแนนสะท้อนถ้อยคำที่กฎตรวจพบ การพิสูจน์ข้อเท็จจริงต้องอาศัยหลักฐานจากต้นทาง</p>
+          <p>{t.guideCaveat}</p>
         </div>
       </dialog>
+
       <div aria-live="polite" className="toast-region">
         {toast && (
           <div className="toast">

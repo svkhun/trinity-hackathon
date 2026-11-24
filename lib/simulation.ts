@@ -113,3 +113,55 @@ export function simulate(
     })),
   };
 }
+
+export function simulateBands(
+  { amount, years, rate, vol, approach }: Inputs,
+  seed = 42,
+) {
+  const rng = random(seed),
+    months = years * 12,
+    contribution = amount * months,
+    sigma = vol / 100;
+  const drift = (Math.log1p(rate / 100) - (sigma * sigma) / 2) / 12,
+    noise = sigma / Math.sqrt(12);
+  const byMonth: number[][] = Array.from({ length: months + 1 }, () => []);
+
+  for (let path = 0; path < 240; path++) {
+    let monthly = 0,
+      lump = contribution,
+      timing = 0,
+      cash = 0,
+      previous = 1;
+    byMonth[0].push(approach === "lump" ? lump : 0);
+    for (let t = 1; t <= months; t++) {
+      const normal =
+        Math.sqrt(-2 * Math.log(rng())) * Math.cos(2 * Math.PI * rng());
+      const growth = Math.exp(drift + noise * normal);
+      monthly = (monthly + amount) * growth;
+      lump *= growth;
+      cash += amount;
+      if (previous >= 1) {
+        timing += cash;
+        cash = 0;
+      }
+      timing *= growth;
+      previous = growth;
+      byMonth[t].push({ monthly, lump, timing: timing + cash }[approach]);
+    }
+  }
+
+  return byMonth.map((vals, m) => {
+    vals.sort((a, b) => a - b);
+    const p10 = Math.round(vals[24]);
+    const median = Math.round(vals[119]);
+    const p90 = Math.round(vals[215]);
+    return {
+      month: m,
+      contribution: approach === "lump" ? contribution : m * amount,
+      median,
+      p10,
+      p90,
+      band: [p10, p90] as [number, number],
+    };
+  });
+}

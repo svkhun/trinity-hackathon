@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
 import "./fonts.css";
 import "./globals.css";
+
 export const metadata: Metadata = {
-  title: "HypeCheck AI — Think Before You Invest",
-  description: "ห้องวิเคราะห์โพสต์การลงทุนและจำลองความเสี่ยงสำหรับการเรียนรู้",
+  title: "hypecheck. — Investment Claim & Risk Intelligence",
+  description:
+    "ตรวจสอบถ้อยคำชวนลงทุน แยกภาษาเร่งรัดออกจากหลักฐาน และจำลองความเสี่ยงอย่างรอบด้าน",
 };
+
+const preloadedFonts = [
+  "plus-jakarta-sans-latin-300",
+  "anuphan-thai-300",
+];
+
 export default function RootLayout({
   children,
 }: {
@@ -13,11 +21,11 @@ export default function RootLayout({
   return (
     <html lang="th">
       <head>
-        {["bai-jamjuree-thai-600", "sarabun-thai-400"].map((face) => (
+        {preloadedFonts.map((face) => (
           <link
             key={face}
             rel="preload"
-            href={`/fonts/${face}-normal.woff2`}
+            href={`/fonts/${face}.woff2`}
             as="font"
             type="font/woff2"
             crossOrigin="anonymous"

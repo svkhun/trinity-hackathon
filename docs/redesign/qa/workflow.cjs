@@ -32,11 +32,13 @@ async function run() {
         .filter((f) => f.status === "loaded")
         .map((f) => [f.family, f.weight]),
     }));
-    assert.ok(fonts.heading.includes("Bai Jamjuree"));
-    assert.ok(fonts.input.includes("Sarabun"));
-    for (const family of ["Bai Jamjuree", "Sarabun"])
+    assert.ok(fonts.heading.includes("Manrope"));
+    assert.ok(fonts.heading.includes("IBM Plex Sans Thai"));
+    assert.ok(fonts.input.includes("Inter"));
+    assert.ok(fonts.input.includes("IBM Plex Sans Thai"));
+    for (const family of ["Manrope", "Inter", "IBM Plex Sans Thai", "IBM Plex Mono"])
       assert.ok(fonts.loaded.some(([name]) => name.includes(family)));
-    checks.push("Thai display and body faces loaded from local files");
+    checks.push("Editorial multi-script font system loaded from local files");
     const focused = () =>
       page.evaluate(() => document.activeElement?.textContent?.trim());
     await page.keyboard.press("Tab");

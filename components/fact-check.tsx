@@ -1,103 +1,11 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import {
-  Activity,
-  BookOpen,
-  ClipboardCopy,
-  Link2,
-  LoaderCircle,
-  LockKeyhole,
-  ScanText,
-} from "lucide-react";
-import { Button } from "./ui/button";
-import { Disclosure, PanelHead, Status, type Go } from "./shared";
+import { useEffect, useRef } from "react";
+import { ArrowRight, Copy } from "lucide-react";
+import { Disclosure, type Go } from "./shared";
 import type { Report } from "@/lib/analysis";
 import { scenarios } from "@/lib/data";
-export function Composer({
-  draft,
-  setDraft,
-  analyze,
-  busy,
-  error,
-}: {
-  draft: string;
-  setDraft: (v: string) => void;
-  analyze: () => void;
-  busy: boolean;
-  error: string;
-}) {
-  const selected = scenarios.find((x) => x.text === draft.trim());
-  return (
-    <section className="panel composer">
-      <header className="composer-head">
-        <div>
-          <span className="folio">เริ่มจากสิ่งที่คุณอ่าน</span>
-          <h2>โพสต์นี้ บอกอะไรเราบ้าง?</h2>
-        </div>
-        <label className="case-select">
-          <span>เลือกกรณีศึกษา</span>
-          <select
-            aria-label="เลือกกรณีศึกษา"
-            disabled={busy}
-            value={selected?.id ?? "custom"}
-            onChange={(e) =>
-              setDraft(
-                scenarios.find((s) => s.id === e.target.value)?.text ?? "",
-              )
-            }
-          >
-            <option value="custom">เขียนโพสต์เอง</option>
-            {scenarios.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </header>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          analyze();
-        }}
-      >
-        <label htmlFor="post" className="sr-only">
-          ข้อความที่ต้องการตรวจสอบ
-        </label>
-        <div className={"input-wrap " + (error ? "invalid" : "")}>
-          <textarea
-            id="post"
-            placeholder="วางโพสต์การลงทุนที่อยากตรวจสอบที่นี่…"
-            value={draft}
-            disabled={busy}
-            onChange={(e) => setDraft(e.target.value)}
-            aria-invalid={!!error}
-            aria-describedby={error ? "post-error post-count" : "post-count"}
-          />
-          <span className="char-count" id="post-count">
-            {draft.length.toLocaleString()} / 3,000
-          </span>
-        </div>
-        {error && (
-          <p id="post-error" role="alert" className="error">
-            {error}
-          </p>
-        )}
-        <div className="form-footer">
-          <span className="privacy">
-            <LockKeyhole size={15} /> ประมวลผลบนอุปกรณ์
-          </span>
-          <Button disabled={busy} type="submit">
-            {busy ? <LoaderCircle className="spin" size={17} /> : <ScanText size={17} />}{" "}
-            {busy ? "กำลังเทียบถ้อยคำ…" : "ตรวจโพสต์นี้"}
-          </Button>
-        </div>
-      </form>
-    </section>
-  );
-}
-const evidenceColor = (s: string) =>
-  s === "Supported" ? "lime" : s === "Contradicted" ? "pink" : "orange";
+import { copy, type Locale } from "@/lib/i18n";
+
 export function Highlighted({ report }: { report: Report }) {
   const phrases = report.metrics
     .flatMap((m) => m.phrases)
@@ -125,121 +33,318 @@ export function Highlighted({ report }: { report: Report }) {
     </>
   );
 }
-export function Findings({
-  targetPhrase,
+
+const statusTone = (s: string) =>
+  s === "Supported" ? "low" : s === "Contradicted" ? "high" : "mid";
+
+export function FactCheckPage({
+  locale,
+  draft,
+  setDraft,
   report,
+  busy,
+  error,
+  analyze,
+  targetPhrase,
   go,
   notify,
 }: {
+  locale: Locale;
+  draft: string;
+  setDraft: (v: string) => void;
   report: Report;
+  busy: boolean;
+  error: string;
+  analyze: () => void;
+  targetPhrase: string | null;
   go: Go;
   notify: (v: string) => void;
-  targetPhrase: string | null;
 }) {
-  const [tab, setTab] = useState<"claims" | "evidence">("claims");
+  const t = copy[locale].factCheck;
+  const tov = copy[locale].overview;
+  const scNames = copy[locale].scenarios;
+  const evLabels = copy[locale].evidenceLabels;
+  const selected = scenarios.find((x) => x.text === draft.trim());
+
   const findingsRef = useRef<HTMLDivElement>(null);
   const targetIndex = report.findings.findIndex(
     (f) => f.phrase === targetPhrase,
   );
+
   useEffect(() => {
     if (targetIndex >= 0)
       findingsRef.current?.querySelectorAll("summary")[targetIndex]?.focus();
   }, [targetIndex]);
-  async function copy() {
+
+  const activeName =
+    report.scenario !== "custom"
+      ? scNames[report.scenario] ?? report.scenario
+      : tov.customName;
+
+  const levelTone =
+    report.score >= 60 ? "high" : report.score >= 25 ? "mid" : "low";
+  const levelText =
+    report.score >= 60
+      ? tov.levelHigh
+      : report.score >= 25
+        ? tov.levelMid
+        : tov.levelLow;
+
+  async function copySummary() {
     const summary = [
-      "HypeCheck AI · ผลวิเคราะห์จำลอง",
+      "HypeCheck AI · Illustrative Review",
       report.text,
-      "Risk Signal: " + report.score + "/100",
+      `Persuasion Score: ${report.score}/100`,
       ...report.findings.map(
-        (f) => f.phrase + " — " + f.title + " (" + f.evidence + ")",
+        (f) => `${f.phrase} — ${f.title} (${f.evidence})`,
       ),
-      "คะแนนนี้ใช้เพื่อการเรียนรู้",
     ].join("\n");
     try {
       await navigator.clipboard.writeText(summary);
-      notify("คัดลอกสรุปผลแล้ว");
+      notify(t.copiedToast);
     } catch {
-      notify("คัดลอกไม่ได้ กรุณาอนุญาตการใช้คลิปบอร์ดในเบราว์เซอร์");
+      notify(t.copyFailToast);
     }
   }
-  return (
-    <section className="panel report">
-      <PanelHead
-        title="ผลตรวจสอบโพสต์"
 
-        action={
-          <button
-            type="button"
-            onClick={copy}
-            className="square"
-            aria-label="คัดลอกสรุปผล"
-          >
-            <ClipboardCopy size={16} />
-          </button>
-        }
-      />
-      <blockquote>
-        <Highlighted report={report} />
-      </blockquote>
-      <div className="tab-strip">
-        {(["claims", "evidence"] as const).map((t) => (
-          <button
-            type="button"
-            key={t}
-            onClick={() => setTab(t)}
-            aria-pressed={tab === t}
-            className={tab === t ? "active" : ""}
-          >
-            {t === "claims"
-              ? "ข้อสังเกต (" + report.findings.length + ")"
-              : "หลักฐานอ้างอิง"}
-          </button>
-        ))}
-      </div>
-      {tab === "claims" ? (
-        <div ref={findingsRef}>
-          {report.findings.map((f, i) => (
-            <Disclosure
-              key={JSON.stringify([f.title, f.phrase])}
-              initial={i === (targetIndex >= 0 ? targetIndex : 0)}
-              title={
-                <span className="finding-title">
-                  <b>“{f.phrase}”</b>
-                  <small>{f.title}</small>
-                </span>
-              }
+  return (
+    <div className="mc-page">
+      {/* Page Header */}
+      <section className="mc-band mc-band-white">
+        <div className="mc-container mc-page-head">
+          <span className="mc-eyebrow">{t.eyebrow}</span>
+          <h1 className="mc-display">
+            {t.headlineLine1}
+            <br />
+            {t.headlineLine2}
+          </h1>
+          <p className="mc-lead-deck">{t.deck}</p>
+        </div>
+      </section>
+
+      {/* Warm Neutral Submission & Score Band */}
+      <section className="mc-band mc-band-warm">
+        <div className="mc-container mc-work-grid">
+          <div className="mc-input-col">
+            <h2 className="mc-section-h2">{tov.composerTitle}</h2>
+            <div
+              className="mc-scenario-tabs"
+              role="tablist"
+              aria-label={tov.selectLabel}
             >
-              <Status color={evidenceColor(f.evidence)}>{f.evidence}</Status>
-              <p>{f.explanation}</p>
-              {f.reference && <small>{f.reference}</small>}
-            </Disclosure>
-          ))}
-        </div>
-      ) : (
-        <div className="evidence-box">
-          <BookOpen size={20} />
-          <strong>
-            {report.reference?.title ?? "ยังไม่มีหลักฐานต้นทางสำหรับข้อความนี้"}
-          </strong>
-          <p>
-            {report.reference?.body ??
-              "ระบบไม่ได้ค้นเว็บหรือยืนยันข้อเท็จจริง การขาดแหล่งอ้างอิงยังไม่เพียงพอที่จะสรุปว่าข้อความเป็นเท็จ"}
-          </p>
-          {report.reference && (
-            <p>
-              หลักฐานนี้ใช้ได้เฉพาะข้อกล่าวอ้าง “{report.reference.quote}” ในกรณีศึกษาสมมติ
+              {scenarios.map((s) => {
+                const isCurrent = selected?.id === s.id;
+                return (
+                  <button
+                    type="button"
+                    role="tab"
+                    key={s.id}
+                    disabled={busy}
+                    aria-selected={isCurrent}
+                    className={"mc-tab " + (isCurrent ? "active" : "")}
+                    onClick={() => setDraft(s.text)}
+                  >
+                    {scNames[s.id] ?? s.name}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                role="tab"
+                disabled={busy}
+                aria-selected={!selected}
+                className={"mc-tab " + (!selected ? "active" : "")}
+                onClick={() => {
+                  if (selected) setDraft("");
+                  document.getElementById("post")?.focus();
+                }}
+              >
+                {tov.customTab}
+              </button>
+            </div>
+
+            <form
+              className="mc-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                analyze();
+              }}
+            >
+              <label htmlFor="post" className="sr-only">
+                {tov.composerTitle}
+              </label>
+              <div className={"mc-sheet " + (error ? "invalid" : "")}>
+                <textarea
+                  id="post"
+                  placeholder={tov.placeholder}
+                  value={draft}
+                  disabled={busy}
+                  onChange={(e) => setDraft(e.target.value)}
+                  aria-invalid={!!error}
+                  aria-describedby={
+                    error ? "post-error post-count" : "post-count"
+                  }
+                />
+                <div className="mc-sheet-foot" id="post-count">
+                  <span>{draft.length.toLocaleString()} / 3,000</span>
+                </div>
+              </div>
+              {error && (
+                <p id="post-error" role="alert" className="mc-error">
+                  {error}
+                </p>
+              )}
+              <div className="mc-action-row">
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className="mc-btn-primary"
+                >
+                  {busy ? tov.submitting : tov.submit}
+                </button>
+                <span className="mc-privacy-note">{tov.privacy}</span>
+              </div>
+            </form>
+          </div>
+
+          <div className="mc-signal-col">
+            <span className="mc-muted-label">{tov.scoreLabel}</span>
+            <div className="mc-score-figure">
+              <strong>{report.score}</strong>
+              <span>/ 100</span>
+            </div>
+            <p className="mc-score-context">
+              <span className={"mc-tone-" + levelTone}>{levelText}</span>
+              {" · "}
+              {activeName}
             </p>
-          )}
+            <div className="mc-thin-bar" aria-hidden="true">
+              <i
+                className={"mc-fill-" + levelTone}
+                style={{ width: `${Math.max(3, report.score)}%` }}
+              />
+            </div>
+            <div className="mc-dimension-list">
+              {report.metrics.slice(0, 4).map((m) => (
+                <div className="mc-dimension-row" key={m.label}>
+                  <span>{copy[locale].metrics[m.label] ?? m.label}</span>
+                  <b>{m.score}</b>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      )}
-      <div className="section-actions">
-        <Button variant="outline" onClick={() => go("sources")}>
-          <Link2 size={15} /> สำรวจแหล่งข้อมูล
-        </Button>
-        <Button onClick={() => go("ai-analysis")}>
-          <Activity size={16} /> ดู AI Signals
-        </Button>
-      </div>
-    </section>
+      </section>
+
+      {/* Verification Reading Workspace on Pure White */}
+      <section
+        id="analysis-result"
+        tabIndex={-1}
+        className="mc-band mc-band-white"
+      >
+        <div className="mc-container mc-verify-grid">
+          {/* Left: Highlighted Original Text + Primary Reference */}
+          <div className="mc-verify-left">
+            <div className="mc-row-between">
+              <span className="mc-muted-label">{t.originalLabel}</span>
+              <button
+                type="button"
+                className="mc-inline-action"
+                onClick={copySummary}
+              >
+                <Copy size={15} strokeWidth={1.6} />
+                <span>{t.copyBtn}</span>
+              </button>
+            </div>
+
+            <blockquote className="mc-reading-passage">
+              <Highlighted report={report} />
+            </blockquote>
+
+            <div className="mc-ref-block">
+              <h2 className="mc-sub-h2">{t.refHeading}</h2>
+              {report.reference ? (
+                <>
+                  <p className="mc-ref-status">
+                    <span
+                      className={
+                        "mc-tone-" + statusTone(report.reference.status)
+                      }
+                    >
+                      {evLabels[report.reference.status] ??
+                        report.reference.status}
+                    </span>
+                    {" · "}
+                    {report.reference.title}
+                  </p>
+                  <p className="mc-prose">{report.reference.body}</p>
+                  <p className="mc-fineprint">
+                    {t.refScope(report.reference.quote)}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="mc-ref-title">{t.noRefTitle}</p>
+                  <p className="mc-prose">{t.noRefBody}</p>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Flagged Claims & Explanations */}
+          <div className="mc-verify-right" ref={findingsRef}>
+            <h2 className="mc-section-h2">
+              {t.findingsHeading(report.findings.length)}
+            </h2>
+
+            <div className="mc-findings-list">
+              {report.findings.map((f, i) => (
+                <Disclosure
+                  key={JSON.stringify([f.title, f.phrase])}
+                  initial={i === (targetIndex >= 0 ? targetIndex : 0)}
+                  title={
+                    <div className="mc-finding-summary">
+                      <span className="mc-finding-quote">“{f.phrase}”</span>
+                      <span className="mc-finding-meta">
+                        {f.title} ·{" "}
+                        <em className={"mc-tone-" + statusTone(f.evidence)}>
+                          {evLabels[f.evidence] ?? f.evidence}
+                        </em>
+                      </span>
+                    </div>
+                  }
+                >
+                  <p className="mc-prose">{f.explanation}</p>
+                  {f.reference && (
+                    <p className="mc-fineprint">
+                      {t.refCitePrefix}
+                      {f.reference}
+                    </p>
+                  )}
+                </Disclosure>
+              ))}
+            </div>
+
+            <div className="mc-next-row">
+              <button
+                type="button"
+                className="mc-btn-secondary"
+                onClick={() => go("sources")}
+              >
+                {t.nextSources}
+              </button>
+              <button
+                type="button"
+                className="mc-btn-primary"
+                onClick={() => go("ai-analysis")}
+              >
+                <span>{t.nextAnalysis}</span>
+                <ArrowRight size={16} strokeWidth={1.7} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

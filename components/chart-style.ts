@@ -1,12 +1,14 @@
 export const tipStyle = {
-  background: "#ffffff",
-  border: "1px solid #e5e7ef",
-  borderRadius: 12,
-  boxShadow: "0 8px 24px #25293e12",
-  color: "#25293e",
+  background: "#FFFFFF",
+  border: "1px solid #E2DDD5",
+  borderRadius: 6,
+  boxShadow: "0 8px 24px rgba(20, 20, 20, 0.08)",
+  color: "#141414",
   fontSize: 13,
+  padding: "8px 12px",
+  fontFamily: '"Plus Jakarta Sans", "Anuphan", sans-serif',
 };
-export const axisColor = "#697086";
-export const chartColors = ["#7771be", "#438b83", "#be8b68", "#8a9cc2"];
-export const chartGrid = "#e5e7ef";
-export const chartHover = "#f0effa";
+export const axisColor = "#666666";
+export const chartColors = ["#E86B20", "#141414", "#8C857B"];
+export const chartGrid = "#ECE9E4";
+export const chartHover = "rgba(232, 107, 32, 0.06)";
